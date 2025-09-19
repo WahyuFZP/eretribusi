@@ -158,8 +158,12 @@
             Dashboard
         </a>
     </li>
-    <li><a href="{{ route('companies.index') }}">
-        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+    <li><a href="{{ route('companies.index') }}"
+        class="flex items-center px-3 py-2 rounded-lg transition
+        {{ request()->routeIs('companies.*') 
+             ? 'bg-green-600 text-white font-semibold' 
+             : 'text-gray-800 hover:bg-green-50 hover:text-green-700' }}">
+        <span >
             <img src="{{ asset('icons/building-2.svg') }}" alt="Perusahaan" class="w-6 h-6 inline-block mr-2" />
             Perusahaan
         </span>
