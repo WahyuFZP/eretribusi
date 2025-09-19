@@ -146,51 +146,56 @@
                         <span class="font-bold">DLH</span>
                     </a>
                 </div>
-                <ul>
-                    <li>
-                        <a href="{{ route('dashboard') }}"
-                           class="px-3 py-2 {{ request()->routeIs('dashboard') ? 'bg-green-100 text-green-700 font-semibold rounded-lg' : 'hover:bg-gray-100 rounded-lg' }}">
-                           <img src="{{ asset('icons/layout-dashboard.svg') }}" alt="Dashboard" class="w-6 h-6 inline-block mr-2" />
-                           Dashboard
-                        </a>
-                    </li>
-                    <li>
-                        <span class="px-3 py-2 text-gray-500">
-                            <img src="{{ asset('icons/building-2.svg') }}" alt="Perusahaan" class="w-6 h-6 inline-block mr-2" />
-                            Perusahaan
-                        </span>
-                    </li>
-                    <li>
-                        <span class="px-3 py-2 text-gray-500">
-                            <img src="{{ asset('icons/receipt.svg') }}" alt="Tagihan" class="w-6 h-6 inline-block mr-2" />
-                            Tagihan
-                        </span>
-                    </li>
-                    <li>
-                        <span class="px-3 py-2 text-gray-500">
-                            <img src="{{ asset('icons/pay.svg') }}" alt="Pembayaran" class="w-6 h-6 inline-block mr-2" />
-                            Pembayaran
-                        </span>
-                    </li>
-                    <li>
-                        <span class="px-3 py-2 text-gray-500">
-                            <img src="{{ asset('icons/notification.svg') }}" alt="Notifikasi" class="w-6 h-6 inline-block mr-2" />
-                            Notifikasi
-                        </span>
-                    </li>
-                    <li class="mt-8">
-                        <span class="px-3 py-2 text-gray-500">Pengaturan</span>
-                    </li>
-                    <li>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="w-full text-left px-3 py-2 hover:bg-gray-100 rounded-lg">
-                                <img src="{{ asset('icons/logout.svg') }}" alt="Log Out" class="w-6 h-6 inline-block mr-2" /`>
-                                Log Out
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+                <!-- filepath: c:\laragon\www\eretribusi\resources\views\components\layouts\app\sidebar.blade.php -->
+<ul>
+    <li>
+        <a href="{{ route('dashboard') }}"
+           class="flex items-center px-3 py-2 rounded-lg transition
+           {{ request()->routeIs('dashboard') 
+                ? 'bg-green-600 text-white font-semibold' 
+                : 'text-gray-800 hover:bg-green-50 hover:text-green-700' }}">
+            <img src="{{ asset('icons/layout-dashboard.svg') }}" alt="Dashboard" class="w-6 h-6 inline-block mr-2" />
+            Dashboard
+        </a>
+    </li>
+    <li><a href="{{ route('companies.index') }}">
+        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+            <img src="{{ asset('icons/building-2.svg') }}" alt="Perusahaan" class="w-6 h-6 inline-block mr-2" />
+            Perusahaan
+        </span>
+    </a>
+</li>
+    <li>
+        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+            <img src="{{ asset('icons/receipt.svg') }}" alt="Tagihan" class="w-6 h-6 inline-block mr-2" />
+            Tagihan
+        </span>
+    </li>
+    <li>
+        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+            <img src="{{ asset('icons/pay.svg') }}" alt="Pembayaran" class="w-6 h-6 inline-block mr-2" />
+            Pembayaran
+        </span>
+    </li>
+    <li>
+        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+            <img src="{{ asset('icons/notification.svg') }}" alt="Notifikasi" class="w-6 h-6 inline-block mr-2" />
+            Notifikasi
+        </span>
+    </li>
+    <li class="mt-8">
+        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">Pengaturan</span>
+    </li>
+    <li>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit" class="flex items-center w-full text-left px-3 py-2 rounded-lg hover:bg-green-50 hover:text-green-700 transition">
+                <img src="{{ asset('icons/logout.svg') }}" alt="Log Out" class="w-6 h-6 inline-block mr-2" />
+                Log Out
+            </button>
+        </form>
+    </li>
+</ul>
             </aside>
         </div>
     </div>
