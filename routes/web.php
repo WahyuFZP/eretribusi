@@ -15,6 +15,14 @@ Route::view('companies', 'companies.index')
     ->middleware(['auth', 'verified'])
     ->name('companies.index');
 
+Route::view('payments', 'payments.index')
+    ->middleware(['auth', 'verified'])
+    ->name('payments.index');
+
+Route::view('invoices', 'invoices.index')
+    ->middleware(['auth', 'verified'])
+    ->name('invoices.index');
+
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 

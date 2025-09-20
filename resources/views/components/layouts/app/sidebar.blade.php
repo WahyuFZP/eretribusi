@@ -142,11 +142,11 @@
             <aside class="menu p-4 w-64 min-h-full bg-white border-r border-gray-200 text-gray-800">
                 <div class="mb-4">
                     <a href="{{ route('dashboard') }}" class="flex items-center space-x-2 mb-6">
-                        {{-- <x-app-logo /> --}}
-                        <span class="font-bold">DLH</span>
+                        <img src="{{ asset('icons/logo.png') }}" alt="Logo DLH" class="w-10 h-15 inline-block" />
+                        <span class="font-bold text-lg">DLH</span>
                     </a>
                 </div>
-                <!-- filepath: c:\laragon\www\eretribusi\resources\views\components\layouts\app\sidebar.blade.php -->
+
 <ul>
     <li>
         <a href="{{ route('dashboard') }}"
@@ -170,16 +170,28 @@
     </a>
 </li>
     <li>
-        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+        <a href="{{ route('invoices.index') }}"
+        class="flex items-center px-3 py-2 rounded-lg transition
+        {{ request()->routeIs('invoices.*') 
+             ? 'bg-green-600 text-white font-semibold' 
+             : 'text-gray-800 hover:bg-green-50 hover:text-green-700' }}">
+        <span>
             <img src="{{ asset('icons/receipt.svg') }}" alt="Tagihan" class="w-6 h-6 inline-block mr-2" />
             Tagihan
         </span>
+        </a>
     </li>
     <li>
-        <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
+        <a href="{{ route('payments.index') }}"
+        class="flex items-center px-3 py-2 rounded-lg transition
+        {{ request()->routeIs('payments.*') 
+             ? 'bg-green-600 text-white font-semibold' 
+             : 'text-gray-800 hover:bg-green-50 hover:text-green-700' }}">
+        <span>
             <img src="{{ asset('icons/pay.svg') }}" alt="Pembayaran" class="w-6 h-6 inline-block mr-2" />
             Pembayaran
         </span>
+        </a>
     </li>
     <li>
         <span class="flex items-center px-3 py-2 text-gray-500 rounded-lg">
