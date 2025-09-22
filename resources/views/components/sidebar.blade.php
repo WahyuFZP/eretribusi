@@ -39,6 +39,7 @@
                                     d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
                             </svg>
                             {{ __('Dashboard') }}
+                            <span class="badge badge-xs badge-success ml-auto">Ready</span>
                         </a>
                     </li>
 
@@ -89,6 +90,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
                             </svg>
+
                             {{ __('Perusahaan') }}
                         </a>
                     </li>
@@ -156,6 +158,7 @@
                                     d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                             {{ __('Profile') }}
+                            <span class="badge badge-xs badge-success ml-auto">Ready</span>
                         </a>
                     </li>
                     <li>
