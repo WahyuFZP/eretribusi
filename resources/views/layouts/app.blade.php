@@ -17,19 +17,19 @@
     <body class="font-sans antialiased">
         <!-- Sidebar Layout dengan DaisyUI -->
         <x-sidebar>
-            <!-- Page Header -->
-            @isset($header)
+            <!-- Page Header (use sections when view extends this layout) -->
+            @hasSection('header')
                 <div class="mb-6">
                     <div class="bg-white rounded-lg shadow-sm p-6">
-                        {{ $header }}
+                        @yield('header')
                     </div>
                 </div>
-            @endisset
+            @endif
 
             <!-- Page Content -->
             <div class="space-y-6">
-                {{ $slot }}
+                @yield('content')
             </div>
-        </x-sidebar>
+        </x-sidebar>    
     </body>
 </html>

@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             DefaultUsersSeeder::class,
         ]);
 
+        
+
         // User::factory(10)->create();
 
         // User::factory()->create([
