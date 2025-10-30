@@ -1,17 +1,18 @@
-@section('page-title', __('Dashboard'))
+@extends('layouts.app')
 
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">{{ __('Dashboard') }}</h1>
-                <p class="text-gray-600">{{ __('Welcome back to e-Retribusi system') }}</p>
-            </div>
-            <div class="text-sm text-gray-500">
-                {{ now()->format('l, d F Y') }}
-            </div>
+@section('header')
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-base-content">{{ __('Dashboard') }}</h1>
+            <p class="text-base-content/70">{{ __('Welcome back to e-Retribusi system') }} {{ Auth::user()->name }}</p>
         </div>
-    </x-slot>
+        <div class="text-sm text-base-content/60">
+            {{ now()->format('l, d F Y') }}
+        </div>
+    </div>
+@endsection
+
+@section('content')
 
     <!-- Dashboard Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -178,4 +179,4 @@
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

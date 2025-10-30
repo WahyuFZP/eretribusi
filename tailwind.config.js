@@ -59,7 +59,8 @@ export default {
         styled: true,
         utils: true,
         rtl: false,
-        prefix: "",
+
+    prefix: "",
         logs: true,
     },
 };

@@ -21,10 +21,22 @@ class FakeUserSeeder extends Seeder
             return;
         }
 
+        $count = 15; // jumlah fake users
+
         // Optional: konfirmasi interaktif saat dijalankan manual
-        if (!$this->command->confirm('Create 50 fake users? (yes/no)')) {
-            $this->command->info('Aborted FakeUsersSeeder.');
-            return;
+        // Otomatis dilewati jika menjalankan dengan --no-interaction atau ENV SEED_SKIP_CONFIRM=true
+        $skipConfirm = false;
+        try {
+            $skipConfirm = (bool) ($this->command->option('no-interaction') ?? false) || (bool) env('SEED_SKIP_CONFIRM', false);
+        } catch (\Throwable $e) {
+            // ignore if option not available
+        }
+
+        if (!$skipConfirm) {
+            if (!$this->command->confirm("Create {$count} fake users? (yes/no)")) {
+                $this->command->info('Aborted FakeUsersSeeder.');
+                return;
+            }
         }
 
         // Pastikan role sudah tersedia
@@ -34,28 +46,45 @@ class FakeUserSeeder extends Seeder
             return;
         }
 
-        $count = 15;
+        // Generate users first
+        $users = User::factory()->count($count)->create();
 
-        User::factory()
-            ->count($count)
-            ->create()
-            ->each(function ($user) use ($roles) {
-                $allowed = array_filter($roles, fn($role) => $role !== 'super-admin');
-                
-                // Contoh probabilitas: 5% admin, sisanya user
-                if (in_array('admin', $allowed) && rand(1,100) <= 5) {
-                    $user->assignRole('admin');
-                } else {
-                    // Assign random non-admin role (bias ke 'user' jika ada)
-                    if (in_array('user', $allowed)) {
-                        $user->assignRole('user');
-                    } else {
-                        // fallback: assign any allowed role
-                        $user->assignRole($allowed[array_rand($allowed)]);
-                    }
+        // Determine exact 5% admins (rounded) with minimum 1 when count > 0
+        $allowed = array_values(array_filter($roles, fn ($role) => $role !== 'super-admin'));
+        $hasAdminRole = in_array('admin', $allowed, true);
+        $hasUserRole = in_array('user', $allowed, true);
+
+        $adminCount = 0;
+        if ($hasAdminRole) {
+            $adminCount = (int) round($count * 0.05);
+            if ($count > 0 && $adminCount === 0) {
+                $adminCount = 1; // ensure at least 1 admin for small samples
+            }
+            $adminCount = min($adminCount, $count);
+        }
+
+        $adminSample = $hasAdminRole && $adminCount > 0
+            ? $users->random($adminCount)
+            : collect();
+
+        foreach ($users as $user) {
+            if ($hasAdminRole && $adminSample->contains('id', $user->id)) {
+                $user->assignRole('admin');
+                continue;
+            }
+
+            if ($hasUserRole) {
+                $user->assignRole('user');
+            } else {
+                // fallback: assign any allowed role
+                if (!empty($allowed)) {
+                    $user->assignRole($allowed[array_rand($allowed)]);
                 }
-                
-            });
-            $this->command->info("Created {$count} fake users and assigned roles.");
+            }
+        }
+
+        $this->command->info("Created {$count} fake users. Admins: "
+            . ($hasAdminRole ? $adminSample->count() : 0)
+            . ", Users: " . ($hasUserRole ? ($count - ($adminSample->count())) : 0));
     }
 }

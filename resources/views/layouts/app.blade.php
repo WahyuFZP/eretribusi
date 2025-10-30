@@ -11,6 +11,15 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+        <!-- Apply saved theme early to avoid flash -->
+        <script>
+            (function () {
+                try {
+                    var saved = localStorage.getItem('theme');
+                    if (saved) document.documentElement.setAttribute('data-theme', saved);
+                } catch (e) {}
+            })();
+        </script>
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

@@ -22,7 +22,7 @@
                     <x-application-logo class="h-8 w-8 fill-current text-primary" />
                     <div>
                         <h2 class="font-bold text-lg">{{ config('app.name', 'e-Retribusi') }}</h2>
-                        <p class="text-xs text-base-content/60">Admin Dashboard</p>
+                        <p class="text-xs text-base-content/60">Integrated System Payment</p>
                     </div>
                 </div>
             </div>
@@ -47,6 +47,7 @@
                     <li class="menu-title">
                         <span>Data Master</span>
                     </li>
+                    @role('super-admin|admin')
                     <li>
                         <a href="{{ route('admin.users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -57,6 +58,7 @@
                             {{ __('Users') }}
                         </a>
                     </li>
+                    @endrole
                     <li>
                         <a href="#" class="{{ request()->routeIs('retribusi.*') ? 'active' : '' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,9 +84,9 @@
                     <li class="menu-title">
                         <span>Data Perusahaan</span>
                     </li>
+                    @role('user')
                     <li>
-                    <li>
-                        <a href="#" class="{{ request()->routeIs('perusahaan.*') ? 'active' : '' }}">
+                        <a href="{{ route('users.company.index') }}" class="{{ request()->routeIs('users.company*') ? 'active' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                 stroke-width="1.5" stroke="currentColor" class="size-6">
                                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -94,6 +96,7 @@
                             {{ __('Perusahaan') }}
                         </a>
                     </li>
+                    @endrole
                     <li>
 
 

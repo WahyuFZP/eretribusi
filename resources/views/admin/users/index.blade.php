@@ -14,12 +14,12 @@
         <div class="overflow-x-auto">
             <table class="table table-zebra w-full">
                 <thead>
-                    <tr class="bg-green-400">
-                        <th>No</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Roles</th>
-                        <th>Actions</th>
+                    <tr class="bg-base-200 text-base-content/70">
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Name</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Email</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Roles</th>
+                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
