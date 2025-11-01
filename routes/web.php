@@ -5,6 +5,10 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\User\CompanyController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use App\Models\Invoice;
+use App\Models\Company;
+use Illuminate\Support\Facades\DB;
+use App\Models\Payment;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,5 +46,61 @@ Route::resource('companies', CompanyController::class)
 Route::resource('companies', CompanyController::class)
     ->middleware(['auth', 'role:user'])
     ->names('users.company');
+
+// Admin payments - simple listing view for admins
+Route::get('admin/payments', function (Request $request) {
+    // create some dummy invoices on first visit to help admin UI testing
+    if (Invoice::count() === 0) {
+        $company = Company::first();
+        if (! $company) {
+            $company = Company::create([
+                'user_id' => $request->user()->id ?? null,
+                'name' => 'Sampah Lokal',
+                'email' => 'info@sampah.local',
+                'code' => 'SMPH-PG01',
+            ]);
+        }
+
+        for ($i = 1; $i <= 5; $i++) {
+            $inv = new Invoice([
+                'company_id' => $company->id,
+                'invoice_date' => now()->toDateString(),
+                'due_date' => now()->addDays(14)->toDateString(),
+                'amount' => 100000 * $i,
+                'late_fee' => 0,
+                'issued_at' => now(),
+            ]);
+            $inv->save();
+        }
+        
+        // create sample payments for first two invoices (mark as paid)
+        $firstTwo = Invoice::latest()->take(2)->get();
+        foreach ($firstTwo as $invPaid) {
+            $payment = Payment::create([
+                'invoice_id' => $invPaid->id,
+                'company_id' => $invPaid->company_id,
+                'amount' => $invPaid->amount,
+                'method' => 'manual',
+                'gateway' => 'manual',
+                'order_id' => null,
+                'transaction_id' => 'DUMMY-'.now()->timestamp.'-'.($invPaid->id),
+                'reference' => null,
+                'status' => 'settled',
+                'gateway_response' => null,
+                'paid_at' => now(),
+                'created_by' => $request->user()->id ?? null,
+            ]);
+
+            // update invoice paid_amount and status
+            $invPaid->paid_amount = $invPaid->amount;
+            $invPaid->status = 'paid';
+            $invPaid->paid_at = now();
+            $invPaid->save();
+        }
+    }
+
+    $invoices = Invoice::latest()->paginate(10);
+    return view('admin.payments.index', compact('invoices'));
+})->middleware(['auth', 'role:super-admin|admin'])->name('admin.payments.index');
 
 require __DIR__.'/auth.php';

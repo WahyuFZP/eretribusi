@@ -11,6 +11,7 @@ class Company extends Model
     /** @use HasFactory<\Database\Factories\CompanyFactory> */
     use HasFactory;
     protected $fillable = [
+        'code',
         'user_id',
         'name',
         'address',
@@ -25,17 +26,23 @@ class Company extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function scopeSearch($query, $terms)
+    /**
+     * Scope a query to search across several company fields.
+     */
+    public function scopeSearch($query, ?string $term)
     {
-        if ($terms) {
-            $query->where(function ($query) use ($terms) {
-                $query->where('name', 'like', "%{$terms}%")
-                    ->orWhere('address', 'like', "%{$terms}%")
-                    ->orWhere('phone', 'like', "%{$terms}%")
-                    ->orWhere('email', 'like', "%{$terms}%")
-                    ->orWhere('badan_usaha', 'like', "%{$terms}%")
-                    ->orWhere('jenis_usaha', 'like', "%{$terms}%");
-            });
+        $term = trim((string) $term);
+        if ($term === '') {
+            return $query;
         }
+
+        return $query->where(function ($q) use ($term) {
+            $q->where('name', 'like', "%{$term}%")
+              ->orWhere('badan_usaha', 'like', "%{$term}%")
+              ->orWhere('jenis_usaha', 'like', "%{$term}%")
+              ->orWhere('phone', 'like', "%{$term}%")
+              ->orWhere('email', 'like', "%{$term}%")
+              ->orWhere('address', 'like', "%{$term}%");
+        });
     }
 }
