@@ -43,6 +43,12 @@ class Invoice extends Model
         return $this->belongsTo(Company::class);
     }
 
+    public function bill()
+{
+    return $this->hasOne(\App\Models\Bill::class, 'invoice_id');
+}
+
+
     // Generate invoice number on creating
     protected static function booted()
     {

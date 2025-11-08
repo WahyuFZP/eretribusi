@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\User;
+use App\Models\Invoice;
+use App\Models\Bill;
 
 class Company extends Model
 {
@@ -25,6 +29,25 @@ class Company extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+
+    /**
+     * Get invoices for the company.
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Get bills for the company (if you use a separate Bill model).
+     */
+    public function bills(): HasMany
+    {
+        return $this->hasMany(Bill::class);
+    }
+
+
 
     /**
      * Scope a query to search across several company fields.

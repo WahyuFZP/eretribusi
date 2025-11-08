@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\BillController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\CompanyController;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-use App\Models\Invoice;
 use App\Models\Company;
-use Illuminate\Support\Facades\DB;
+use App\Models\Invoice;
 use App\Models\Payment;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -103,4 +105,11 @@ Route::get('admin/payments', function (Request $request) {
     return view('admin.payments.index', compact('invoices'));
 })->middleware(['auth', 'role:super-admin|admin'])->name('admin.payments.index');
 
+// Admin Tagihan
+Route::get('admin/tagihan', [BillController::class, 'index'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.tagihan.index');
+Route::get('admin/tagihan/create', [BillController::class, 'create'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.tagihan.create');
 require __DIR__.'/auth.php';
