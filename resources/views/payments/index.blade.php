@@ -8,7 +8,7 @@
             <p class="text-sm text-gray-500">Halaman dummy untuk admin — menampilkan invoice_number dan status.</p>
 
             <div class="mt-4">
-                <form method="get" action="{{ route('admin.payments.index') }}" class="mb-4">
+                <form method="get" action="{{ route('payments.index') }}" class="mb-4">
                     <div class="flex gap-2">
                         <input type="search" name="q" value="{{ request('q') }}" placeholder="Cari invoice_number..." class="input input-bordered w-full" />
                         <button type="submit" class="btn btn-primary">Cari</button>
@@ -29,16 +29,16 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($invoices as $invoice)
+                            @forelse($bills as $bill)
                             <tr class="hover">
-                                <td class="font-mono">{{ $invoice->invoice_number }}</td>
-                                <td>{{ optional($invoice->company)->name ?? '-' }}</td>
-                                <td>{{ number_format($invoice->amount, 2, ',', '.') }}</td>
-                                <td>{{ number_format($invoice->late_fee ?? 0, 2, ',', '.') }}</td>
-                                <td>
-                                    <span class="badge badge-ghost">{{ strtoupper($invoice->status) }}</span>
-                                </td>
-                                <td>{{ $invoice->issued_at?->format('Y-m-d') ?? $invoice->invoice_date ?? '-' }}</td>
+                                        <td class="font-mono">{{ $bill->bill_number ?? ('#' . $bill->id) }}</td>
+                                        <td>{{ optional($bill->company)->name ?? '-' }}</td>
+                                        <td>{{ number_format($bill->amount ?? 0, 0, ',', '.') }}</td>
+                                        <td>{{ number_format($bill->paid_amount ?? 0, 0, ',', '.') }}</td>
+                                        <td>
+                                            <span class="badge badge-ghost">{{ strtoupper($bill->status ?? 'unpaid') }}</span>
+                                        </td>
+                                        <td>{{ optional($bill->issued_at)?->format('Y-m-d') ?? $bill->created_at?->format('Y-m-d') ?? '-' }}</td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-outline">Lihat</a>
                                 </td>
@@ -55,7 +55,7 @@
                 </div>
 
                 <div class="mt-4">
-                    {{ $invoices->withQueryString()->links() }}
+                    {{ $bills->withQueryString()->links() }}
                 </div>
             </div>
         </div>

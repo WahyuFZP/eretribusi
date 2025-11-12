@@ -6,6 +6,9 @@ use App\Models\Bill;
 use App\Models\Company;
 use App\Http\Requests\StoreBillRequest;
 use App\Http\Requests\UpdateBillRequest;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class BillController extends Controller
 {
@@ -16,7 +19,16 @@ class BillController extends Controller
     {
         // minimal index to power admin/tagihan view
         $bills = Bill::latest()->paginate(10);
-        $companies = Company::orderBy('name')->get();
+
+        // Precompute active (unpaid/partial) invoice sums per company to avoid calling relations in the view
+        $companies = Company::orderBy('name')
+            ->withSum([
+                // alias with constraint: sum 'amount' for invoices that are not paid
+                'invoices as active_invoices_sum' => function ($q) {
+                    $q->where('status', '<>', 'paid');
+                }
+            ], 'amount')
+            ->get();
 
         return view('admin.tagihan.index', compact('bills', 'companies'));
     }
@@ -38,7 +50,48 @@ class BillController extends Controller
      */
     public function store(StoreBillRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        $bill = DB::transaction(function () use ($data, $request) {
+            // Resolve or create company
+            $company = null;
+            if (!empty($data['company_id'])) {
+                $company = Company::find($data['company_id']);
+            } elseif (!empty($data['company_name'])) {
+                $company = Company::firstOrCreate(
+                    ['name' => $data['company_name']],
+                    ['code' => null]
+                );
+            }
+
+            // Generate bill number if not provided
+            $billNumber = $data['bill_number'] ?? ('BILL-' . strtoupper(Str::random(6)) . '-' . date('YmdHis'));
+
+            $attrs = [
+                'bill_number' => $billNumber,
+                'company_id' => $company->id ?? null,
+                'description' => $data['description'] ?? null,
+                'amount' => $data['amount'] ?? 0,
+                'paid_amount' => $data['paid_amount'] ?? 0,
+                'due_date' => $data['due_date'] ?? null,
+                'billing_period' => $data['billing_period'] ?? null,
+                'status' => $data['status'] ?? 'unpaid',
+                'notes' => $data['notes'] ?? null,
+                'created_by' => $request->user()->id ?? null,
+            ];
+
+            // handle document upload
+            if ($request->hasFile('document')) {
+                $path = $request->file('document')->store('bills', 'public');
+                $attrs['document'] = $path;
+            }
+
+            $bill = Bill::create($attrs);
+
+            return $bill;
+        });
+
+        return redirect()->route('admin.tagihan.index')->with('success', 'Tagihan berhasil dibuat (No: ' . $bill->bill_number . ')');
     }
 
     /**

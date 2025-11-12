@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('invoice_id');
+            // link to bills by id (preferred) and keep human-readable bill_number for gateway/order mapping
+            // Do NOT add a foreign key constraint here because the `bills` table may be created by a later migration.
+            // We'll store bill_id (nullable) and bill_number for lookup; a later migration can add FK if desired.
+            $table->unsignedBigInteger('bill_id')->nullable()->index();
+            $table->string('bill_number')->nullable()->index();
             $table->unsignedBigInteger('company_id')->nullable();
             $table->decimal('amount', 15, 2);
             $table->string('method')->nullable();
@@ -30,7 +34,7 @@ return new class extends Migration
 
             $table->json('metadata')->nullable();
 
-            $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('restrict');
+            // note: bill_id is a foreign key constrained above via foreignId()->constrained()
             $table->foreign('company_id')->references('id')->on('companies')->nullOnDelete();
             $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
 

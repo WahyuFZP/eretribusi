@@ -11,7 +11,8 @@ class StoreBillRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        // Allow only authenticated users (further role checks can be enforced by controller/middleware)
+        return $this->user() !== null;
     }
 
     /**
@@ -22,7 +23,16 @@ class StoreBillRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'company_id' => ['nullable', 'exists:companies,id'],
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'bill_number' => ['nullable', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'amount' => ['required', 'numeric', 'min:0'],
+            'due_date' => ['nullable', 'date'],
+            'billing_period' => ['nullable', 'string', 'max:50'],
+            'status' => ['nullable', 'in:unpaid,partial,paid'],
+            'document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+            'notes' => ['nullable', 'string', 'max:2000'],
         ];
     }
 }
