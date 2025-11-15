@@ -20,11 +20,11 @@ class BillController extends Controller
         // minimal index to power admin/tagihan view
         $bills = Bill::latest()->paginate(10);
 
-        // Precompute active (unpaid/partial) invoice sums per company to avoid calling relations in the view
+        // Precompute active (unpaid/partial) bills sums per company to avoid calling relations in the view
         $companies = Company::orderBy('name')
             ->withSum([
-                // alias with constraint: sum 'amount' for invoices that are not paid
-                'invoices as active_invoices_sum' => function ($q) {
+                // alias with constraint: sum 'amount' for bills that are not paid
+                'bills as active_bills_sum' => function ($q) {
                     $q->where('status', '<>', 'paid');
                 }
             ], 'amount')

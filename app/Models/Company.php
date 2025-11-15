@@ -15,7 +15,8 @@ class Company extends Model
     /** @use HasFactory<\Database\Factories\CompanyFactory> */
     use HasFactory;
     protected $fillable = [
-        'code',
+        // 'code' is intentionally omitted from fillable to prevent mass-assignment by users.
+        // Code will be generated automatically in the model boot.
         'user_id',
         'name',
         'address',
@@ -67,5 +68,42 @@ class Company extends Model
               ->orWhere('email', 'like', "%{$term}%")
               ->orWhere('address', 'like', "%{$term}%");
         });
+    }
+
+    /**
+     * Auto-generate a unique company code when creating.
+     */
+    protected static function booted()
+    {
+        static::creating(function (Company $company) {
+            if (empty($company->code)) {
+                $company->code = static::generateUniqueCode();
+            }
+        });
+
+        // Prevent changing code on update
+        static::updating(function (Company $company) {
+            if ($company->isDirty('code')) {
+                // revert to original value to keep code immutable
+                $company->code = $company->getOriginal('code');
+            }
+        });
+    }
+
+    protected static function generateUniqueCode(): string
+    {
+        // Basic generator: 6 uppercase alphanumeric characters prefixed by CMP-
+        // Retry a few times to avoid collisions.
+        for ($i = 0; $i < 10; $i++) {
+            $candidate = 'CMP-' . strtoupper(
+                bin2hex(random_bytes(3))
+            );
+            if (!static::where('code', $candidate)->exists()) {
+                return $candidate;
+            }
+        }
+
+        // Fallback to timestamp-based code
+        return 'CMP-' . strtoupper(uniqid());
     }
 }

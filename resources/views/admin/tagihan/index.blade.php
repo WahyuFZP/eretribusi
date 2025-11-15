@@ -63,9 +63,9 @@
 										<td>{{ $company->name }}</td>
 										<td>{{ $company->email ?? '-' }}</td>
 										<td class="font-mono">{{ $company->code ?? '-' }}</td>
-										<td class="text-right">{{ number_format($company->active_invoices_sum ?? 0, 0, ',', '.') }}</td>
+										<td class="text-right">{{ number_format($company->active_bills_sum ?? 0, 0, ',', '.') }}</td>
 										<td>
-											<div class="flex gap-2">
+											<div class="flex gap-2">	
 												@if(Route::has('admin.tagihan.create'))
 													<a href="{{ route('admin.tagihan.create', ['company_id' => $company->id]) }}" class="btn btn-sm">Buat Tagihan</a>
 												@else
@@ -86,7 +86,7 @@
 					</div>
 				@else
 					{{-- Show bills/invoices listing --}}
-					<div class="overflow-x-auto">
+					{{-- <div class="overflow-x-auto">
 						<table class="table w-full">
 							<thead>
 								<tr>
@@ -169,7 +169,7 @@
 								@endforelse
 							</tbody>
 						</table>
-					</div>
+					</div> --}}
 
 					@if($paginator && method_exists($paginator, 'withQueryString'))
 						<div class="mt-4">

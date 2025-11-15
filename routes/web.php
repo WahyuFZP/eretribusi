@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
 use App\Http\Controllers\BillController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\CompanyController;
@@ -38,6 +39,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+// Admin Company management (super-admin and admin)
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:super-admin|admin'])->group(function () {
+    Route::get('companies', [AdminCompanyController::class, 'index'])->name('company.index');
+    Route::get('companies/create', [AdminCompanyController::class, 'create'])->name('company.create');
+    Route::post('companies', [AdminCompanyController::class, 'store'])->name('company.store');
+    Route::get('companies/{company}', [AdminCompanyController::class, 'show'])->name('company.show');
+    Route::get('companies/{company}/edit', [AdminCompanyController::class, 'edit'])->name('company.edit');
+    Route::patch('companies/{company}', [AdminCompanyController::class, 'update'])->name('company.update');
+    Route::delete('companies/{company}', [AdminCompanyController::class, 'destroy'])->name('company.destroy');
 });
 
 // Users Company
