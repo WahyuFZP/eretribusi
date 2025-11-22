@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
+use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -40,6 +41,16 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        
+        try {
+            $defaultRole = 'user';
+            if(class_exists(Role::class)) {
+                Role::firstOrCreate(['name' => $defaultRole]);
+                $user->assignRole($defaultRole);
+            }
+        } catch (\Throwable $e) {
+            // silently fail if roles/permission tables are not present
+        }
 
         event(new Registered($user));
 
