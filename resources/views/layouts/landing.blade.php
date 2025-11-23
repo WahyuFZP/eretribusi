@@ -14,21 +14,7 @@
 </head>
 <body>
     <header class="w-full">
-        <nav class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="/" class="font-semibold text-lg">{{ config('app.name', 'e-Retribusi') }}</a>
-            <div>
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="px-3 py-1 border rounded">Dashboard</a>
-                    @else
-                        <a href="{{ route('login') }}" class="px-3 py-1">Log in</a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="ml-2 px-3 py-1 border rounded">Register</a>
-                        @endif
-                    @endauth
-                @endif
-            </div>
-        </nav>
+       
     </header>
 
     <main class="min-h-screen">
