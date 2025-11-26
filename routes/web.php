@@ -24,12 +24,17 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function (Request $request) {
     $user = $request->user();
-    if (!$user) {
+    if (! $user) {
         return redirect()->route('login');
     }
-    return $user->hasRole(['super-admin', 'admin'])
-        ? view('admin.dashboard')
-        : view('users.dashboard');    
+
+    // Admins need a list of companies for the dashboard table
+    if ($user->hasRole(['super-admin', 'admin'])) {
+        $companies = Company::latest()->take(10)->get();
+        return view('admin.dashboard', compact('companies'));
+    }
+
+    return view('users.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 
@@ -94,7 +99,24 @@ Route::get('payments', function (Request $request) {
         }
     }
 
-    $bills = Bill::latest()->paginate(10);
+    $user = $request->user();
+
+    // Build base query with eager-loaded company
+    $query = Bill::with('company')->latest();
+
+    // If the authenticated user is a regular 'user', scope bills to their companies only
+    if ($user && ! $user->hasRole(['super-admin', 'admin'])) {
+        $query = Bill::whereHas('company', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->with('company')->latest();
+    }
+
+    // Optional search by invoice/bill number
+    if ($search = $request->query('q')) {
+        $query->where('bill_number', 'like', "%{$search}%");
+    }
+
+    $bills = $query->paginate(10);
     return view('payments.index', compact('bills'));
 })->middleware(['auth', 'role:super-admin|admin|user'])->name('payments.index');
 

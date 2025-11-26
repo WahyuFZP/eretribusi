@@ -41,6 +41,7 @@
                                         <td>{{ optional($bill->issued_at)?->format('Y-m-d') ?? $bill->created_at?->format('Y-m-d') ?? '-' }}</td>
                                 <td>
                                     <a href="#" class="btn btn-sm btn-outline">Lihat</a>
+                                    <button class="btn btn-sm btn-info">Bayar</button>
                                 </td>
                             </tr>
                             @empty

@@ -24,7 +24,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"></path>
                     </svg>
                 </div>
-                <div class="stat-title">Total Wajib Pajak</div>
+                <div class="stat-title">Total Wajib Retribusi</div>
                 <div class="stat-value text-primary">1,234</div>
                 <div class="stat-desc">↗︎ 5% (30 days)</div>
             </div>
@@ -81,9 +81,8 @@
                 <div class="card-body">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="card-title">{{ __('Recent Payments') }}</h3>
-                        <a href="#" class="btn btn-ghost btn-sm">{{ __('View All') }}</a>
+                        <a href="{{ route('payments.index') }}" class="btn btn-ghost btn-sm">{{ __('View All') }}</a>
                     </div>
-                    
                     <div class="overflow-x-auto">
                         <table class="table table-zebra">
                             <thead>
@@ -95,10 +94,11 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @foreach($companies as $company)
                                 <tr>
                                     <td>
-                                        <div class="font-medium">PT. Maju Jaya</div>
-                                        <div class="text-sm text-gray-500">ID: WP001234</div>
+                                        <div class="font-medium">{{ $company->name }}</div>
+                                        <div class="text-sm text-gray-500">ID: {{ $company->code }}</div>
                                     </td>
                                     <td>Retribusi Pasar</td>
                                     <td>Rp 250,000</td>
@@ -122,6 +122,7 @@
                                     <td>Rp 100,000</td>
                                     <td><span class="badge badge-success">Paid</span></td>
                                 </tr>
+                                @endforeach
                             </tbody>
                         </table>
                     </div>

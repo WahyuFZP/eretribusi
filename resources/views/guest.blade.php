@@ -129,14 +129,14 @@
             </div>
         </div>
     </section>
+
     {{-- Section Untuk About --}}
-    <section id="about">
+    <section id="about" class="py-20">
         <div class="container mx-auto px-4">
             <div class="bg-white rounded-2xl shadow-lg p-8 lg:p-12 mb-8">
                 <h2 id="about-heading" class="text-sm text-gray-800 font-semibold text-center md:text-left">About Us</h2>
                 <h3 class="mt-2 text-2xl lg:text-3xl font-bold text-gray-900 text-center md:text-left">Experience that
                     grows with your scale.</h3>
-
                 <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Card normal 1 -->
                     <article
@@ -240,6 +240,101 @@
                     <p class="text-sm text-gray-600 mt-2">Bayar melalui metode yang tersedia (VA, QRIS, kartu) dan terima
                         bukti digital otomatis.</p>
                 </article>
+            </div>
+        </div>
+    </section>
+
+    {{-- Service / Layanan Retribusi --}}
+    <section id="services" class="py-20">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <!-- Left: list of services -->
+                <div>
+                    <h2 class="text-sm text-gray-600 font-semibold">Layanan Retribusi</h2>
+                    <h3 class="mt-2 text-2xl lg:text-3xl font-bold text-gray-900">Layanan yang kami sediakan</h3>
+                    <p class="mt-3 text-gray-600">Berikut beberapa layanan terkait retribusi publik yang tersedia melalui sistem ini. Klik setiap layanan untuk melihat detail dan tarifnya.</p>
+
+                    <div class="mt-6 space-y-4">
+                        <article class="p-4 border border-[#e9e6e4] rounded-xl bg-white shadow-sm hover:shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Retribusi Sampah</h4>
+                                    <p class="text-sm text-gray-600">Penetapan dan penagihan retribusi sampah untuk rumah tangga dan usaha.</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">Mulai dari</div>
+                                    <div class="font-semibold">Rp 10.000</div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="p-4 border border-[#e9e6e4] rounded-xl bg-white shadow-sm hover:shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Retribusi Parkir</h4>
+                                    <p class="text-sm text-gray-600">Penetapan tarif parkir per jam atau per hari untuk lokasi komersial.</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">Mulai dari</div>
+                                    <div class="font-semibold">Rp 2.000 / jam</div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="p-4 border border-[#e9e6e4] rounded-xl bg-white shadow-sm hover:shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Retribusi Kebersihan</h4>
+                                    <p class="text-sm text-gray-600">Layanan kebersihan dan pemeliharaan kawasan dengan struktur tarif khusus.</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">Mulai dari</div>
+                                    <div class="font-semibold">Rp 50.000</div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="p-4 border border-[#e9e6e4] rounded-xl bg-white shadow-sm hover:shadow-md">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Retribusi Izin Usaha</h4>
+                                    <p class="text-sm text-gray-600">Biaya administrasi dan izin usaha terkait pengelolaan lokasi komersial.</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-500">Mulai dari</div>
+                                    <div class="font-semibold">Rp 150.000</div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+
+                <!-- Right: poster / harga box -->
+                <aside class="order-first lg:order-last">
+                    <div class="sticky top-24">
+                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-[#e9e6e4]">
+                            <div class="p-4">
+                                <h4 class="font-medium text-gray-900">Poster Tarif Retribusi</h4>
+                                <p class="text-sm text-gray-600 mt-1">Lihat ringkasan tarif retribusi dalam satu poster.</p>
+                            </div>
+                            <div class="w-full bg-gray-50 flex items-center justify-center p-6">
+                                <div class="w-full h-[420px] md:h-[560px] bg-white overflow-hidden rounded">
+                                    <object data="{{ asset('documents/perda_kotamadiun.pdf') }}" type="application/pdf" class="w-full h-full">
+                                        <iframe src="{{ asset('documents/perda_kotamadiun.pdf') }}" class="w-full h-full" frameborder="0"></iframe>
+                                        <div class="p-4 text-sm text-gray-600">
+                                            Browser Anda tidak mendukung tampilan PDF. <a href="{{ asset('documents/perda_kotamadiun.pdf') }}" target="_blank" rel="noopener">Buka di tab baru</a> atau <a href="{{ asset('documents/perda_kotamadiun.pdf') }}" download>unduh</a> poster tarif.
+                                        </div>
+                                    </object>
+                                </div>
+                            </div>
+                            <div class="p-4 flex items-center gap-2">
+                                <a href="{{ asset('documents/perda_kotamadiun.pdf') }}" target="_blank" class="btn btn-outline btn-sm">Lihat ukuran penuh</a>
+                                <a href="{{ asset('documents/perda_kotamadiun.pdf') }}" download class="btn btn-primary btn-sm">Unduh Poster</a>
+                            </div>
+                        </div>
+                        <div class="mt-4 text-xs text-gray-500">Catatan: Jika poster tidak muncul, pastikan PDF tersedia di <code>public/documents/perda_kotamadiun.pdf</code> atau unggah poster ke <code>public/images/retribusi-poster.jpg</code> sebagai fallback.</div>
+                    </div>
+                </aside>
             </div>
         </div>
     </section>
