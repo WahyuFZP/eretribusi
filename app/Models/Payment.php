@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
-    /** @use HasFactory<\Database\Factories\PaymentFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'invoice_id',
+        'snap_token',
+        'bill_id',
+        'bill_number',
         'company_id',
         'amount',
         'method',
@@ -27,29 +28,19 @@ class Payment extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
-        'gateway_response' => 'array',
         'paid_at' => 'datetime',
+        'gateway_response' => 'array',
         'metadata' => 'array',
+        'amount' => 'decimal:2',
     ];
-
-    public function invoice()
-    {
-        return $this->belongsTo(Invoice::class);
-    }
-
-    public function company()
-    {
-        return $this->belongsTo(Company::class);
-    }
 
     public function bill()
     {
         return $this->belongsTo(Bill::class);
     }
 
-    public function creator()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(User::class);
     }
 }

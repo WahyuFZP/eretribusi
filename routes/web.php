@@ -113,7 +113,12 @@ Route::get('payments', function (Request $request) {
 
     // Optional search by invoice/bill number
     if ($search = $request->query('q')) {
-        $query->where('bill_number', 'like', "%{$search}%");
+        $query->where(function ($q) use ($search) {
+                $q->where('bill_number', 'like', "%{$search}%")
+              ->orWhereHas('company', function ($qc) use ($search) {
+                  $qc->where('name', 'like', "%{$search}%");
+              });
+        });
     }
 
     $bills = $query->paginate(10);
@@ -130,4 +135,9 @@ Route::get('admin/tagihan/create', [BillController::class, 'create'])
 Route::post('admin/tagihan', [BillController::class, 'store'])
     ->middleware(['auth', 'role:super-admin|admin'])
     ->name('admin.tagihan.store');
+
+// Route to initiate payment for a bill (requires authentication)
+Route::get('bills/{bill}/pay', [BillController::class, 'pay'])
+    ->middleware(['auth'])
+    ->name('bills.pay');
 require __DIR__.'/auth.php';

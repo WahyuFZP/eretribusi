@@ -263,7 +263,7 @@
                                 </div>
                                 <div class="text-right">
                                     <div class="text-sm text-gray-500">Mulai dari</div>
-                                    <div class="font-semibold">Rp 10.000</div>
+                                    <div class="font-semibold">Rp 500</div>
                                 </div>
                             </div>
                         </article>
@@ -289,20 +289,7 @@
                                 </div>
                                 <div class="text-right">
                                     <div class="text-sm text-gray-500">Mulai dari</div>
-                                    <div class="font-semibold">Rp 50.000</div>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="p-4 border border-[#e9e6e4] rounded-xl bg-white shadow-sm hover:shadow-md">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="font-medium">Retribusi Izin Usaha</h4>
-                                    <p class="text-sm text-gray-600">Biaya administrasi dan izin usaha terkait pengelolaan lokasi komersial.</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-sm text-gray-500">Mulai dari</div>
-                                    <div class="font-semibold">Rp 150.000</div>
+                                    <div class="font-semibold">Rp 10.000</div>
                                 </div>
                             </div>
                         </article>
@@ -347,7 +334,11 @@
             <p>
                 Dinas Lingkungan Hidup Kota Madiun.
                 <br />
-                Grow Nature, Grow Future.
+                Jl. Salak III No.7a, Taman, Kec. Taman, Kota Madiun
+                <br />
+                Jawa Timur 63131
+                <br />
+                0351 - 468876
             </p>
         </aside>
         <nav>

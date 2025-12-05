@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Payment;
 
 class Bill extends Model
 {
@@ -44,6 +45,14 @@ class Bill extends Model
 // helper to get payments (via invoice)
 public function payments()
 {
-    return $this->invoice ? $this->invoice->payments() : collect();
+    return $this->hasMany(Payment::class);
+}
+
+/**
+ * Convenience relation for getting the latest payment for this bill.
+ */
+public function latestPayment()
+{
+    return $this->hasOne(Payment::class)->latestOfMany();
 }
 }
