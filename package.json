@@ -19,6 +19,7 @@
         "vite": "^7.0.4"
     },
     "dependencies": {
+        "aos": "^2.3.4",
         "daisyui": "^5.1.13"
     }
 }

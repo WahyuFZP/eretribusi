@@ -60,7 +60,11 @@
                                             @if($bill->status === 'paid' || ($latest && $latest->status === 'paid'))
                                                 <span class="badge badge-success">Lunas</span>
                                             @else
-                                                <a href="{{ route('bills.pay', $bill) }}" class="btn btn-sm btn-info">Bayar</a>
+                                                @if(isset($payment) && $payment->bill_id == $bill->id)
+                                                    <button id="pay-button" class="btn btn-sm btn-info">Bayar</button>
+                                                @else
+                                                    <a href="{{ route('bills.pay', $bill) }}" class="btn btn-sm btn-info">Bayar</a>
+                                                @endif
                                             @endif
                                         </td>
                                     </tr>
@@ -90,10 +94,7 @@
         </script>
         <script>
             (function() {
-                var btn = document.getElementById('pay-button');
-                if (!btn) return; // no button on this listing view
-
-                btn.addEventListener('click', function() {
+                function openSnap() {
                     snap.pay('{{ $snapToken }}', {
                         onSuccess: function(result) {
                             console.log('success', result);
@@ -108,7 +109,25 @@
                             alert('Terjadi kesalahan pada proses pembayaran.');
                         }
                     });
-                });
+                }
+
+                // Auto-open when token is present (return from bills.pay)
+                if (typeof snap !== 'undefined') {
+                    openSnap();
+                } else {
+                    // if script loads slightly later
+                    window.addEventListener('load', function(){
+                        if (typeof snap !== 'undefined') openSnap();
+                    });
+                }
+
+                // Also wire the manual button as fallback
+                var btn = document.getElementById('pay-button');
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        openSnap();
+                    });
+                }
             })();
         </script>
     @endisset

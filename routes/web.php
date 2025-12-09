@@ -1,17 +1,20 @@
 <?php
 
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BillController;
+use App\Http\Controllers\MidtransWebhookController;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\User\CompanyController;
+use App\Models\Bill;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Models\Bill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
 
 
 // Route::get('/', function () {
@@ -140,4 +143,23 @@ Route::post('admin/tagihan', [BillController::class, 'store'])
 Route::get('bills/{bill}/pay', [BillController::class, 'pay'])
     ->middleware(['auth'])
     ->name('bills.pay');
+
+// Midtrans payment notification webhook via web.php (ensure CSRF exemption)
+// Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'notification'])
+//     ->name('midtrans.notification')
+//     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+
+// Optional: simple ping to verify reachability from ngrok
+// Route::get('/midtrans/notification/ping', function () {
+//     return response()->json(['ok' => true]);
+// });
+
+
+Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'notification']);
+
+
 require __DIR__.'/auth.php';
+
+
+
+

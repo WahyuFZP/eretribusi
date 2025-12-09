@@ -9,6 +9,7 @@
     <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+        <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
 
          @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -24,6 +25,11 @@
     <footer class="py-6 text-center text-sm text-gray-500">
         &copy; {{ date('Y') }} {{ config('app.name', 'e-Retribusi') }}
     </footer>
+
+      <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
 
 </body>
 </html>

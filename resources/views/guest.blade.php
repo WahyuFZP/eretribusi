@@ -43,7 +43,7 @@
     </header>
 
     <section id="home" class="bg-white text-gray-800 py-20">
-        <div class="container mx-auto flex flex-col lg:flex-row items-center gap-8">
+        <div class="container mx-auto flex flex-col lg:flex-row items-center gap-8" data-aos="fade-up" data-aos-delay="100" >
             <div class="flex-1">
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Bebas Bayar — Kelola Tagihan dan Retribusi
                     dengan Mudah</h1>
@@ -133,7 +133,7 @@
     {{-- Section Untuk About --}}
     <section id="about" class="py-20">
         <div class="container mx-auto px-4">
-            <div class="bg-white rounded-2xl shadow-lg p-8 lg:p-12 mb-8">
+            <div class="bg-white rounded-2xl shadow-lg p-8 lg:p-12 mb-8" data-aos="fade-right" data-aos-delay="300">
                 <h2 id="about-heading" class="text-sm text-gray-800 font-semibold text-center md:text-left">About Us</h2>
                 <h3 class="mt-2 text-2xl lg:text-3xl font-bold text-gray-900 text-center md:text-left">Experience that
                     grows with your scale.</h3>
@@ -204,17 +204,20 @@
     </section>
 
     {{-- Section Untuk Services (langkah penggunaan & pembayaran) --}}
-    <section id="faq" class="py-20 bg-[#0b4b3f]">
-        <div class="container mx-auto">
-            <div class="max-w-3xl mx-auto text-center mb-12">
+    <section id="faq" class="py-20 bg-[#0b4b3f]" >
+            <div class="container mx-auto">
+            <article data-aos="fade-down">
+            <div class="max-w-3xl mx-auto text-center mb-12" data-aos="fade-down" data-aos-delay="300">
                 <h2 class="text-sm text-[#0b4b3f] font-semibold">How it works</h2>
                 <h3 class="mt-2 text-2xl lg:text-3xl font-bold text-white">Langkah-langkah pembayaran dan penggunaan</h3>
                 <p class="mt-3 text-white/60">Ikuti langkah sederhana ini untuk melakukan pembayaran retribusi dan
                     mengelola tagihan dengan mudah.</p>
             </div>
+            </article>
+            
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <article class="p-6 border border-[#e9e6e4] rounded-2xl bg-white shadow-sm text-center">
+                <article class="p-6 border border-[#e9e6e4] rounded-2xl bg-white shadow-sm text-center" data-aos="fade-up" data-aos-delay="400">
                     <div class="mx-auto w-14 h-14 rounded-full bg-[#f5f3e8] flex items-center justify-center mb-4">
                         <span class="text-lg font-semibold text-[#0b4b3f]">1</span>
                     </div>
@@ -223,7 +226,7 @@
                         histori tagihan.</p>
                 </article>
 
-                <article class="p-6 border border-[#e9e6e4] rounded-2xl bg-white shadow-sm text-center">
+                <article class="p-6 border border-[#e9e6e4] rounded-2xl bg-white shadow-sm text-center" data-aos="fade-up" data-aos-delay="500">
                     <div class="mx-auto w-14 h-14 rounded-full bg-[#f5f3e8] flex items-center justify-center mb-4">
                         <span class="text-lg font-semibold text-[#0b4b3f]">2</span>
                     </div>
@@ -232,7 +235,7 @@
                         baru untuk lokasi/obyek terkait.</p>
                 </article>
 
-                <article class="p-6 border border-[#e9e6e4] rounded-2xl bg-white shadow-sm text-center">
+                <article class="p-6 border border-[#e9e6e4] rounded-2xl bg-white shadow-sm text-center" data-aos="fade-up" data-aos-delay="600">
                     <div class="mx-auto w-14 h-14 rounded-full bg-[#f5f3e8] flex items-center justify-center mb-4">
                         <span class="text-lg font-semibold text-[#0b4b3f]">3</span>
                     </div>
@@ -247,7 +250,7 @@
     {{-- Service / Layanan Retribusi --}}
     <section id="services" class="py-20">
         <div class="container mx-auto px-4">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start" data-aos="fade-up" data-aos-delay="400">
                 <!-- Left: list of services -->
                 <div>
                     <h2 class="text-sm text-gray-600 font-semibold">Layanan Retribusi</h2>
@@ -299,7 +302,7 @@
                 <!-- Right: poster / harga box -->
                 <aside class="order-first lg:order-last">
                     <div class="sticky top-24">
-                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-[#e9e6e4]">
+                        <div class="bg-white rounded-2xl shadow-lg overflow-hidden border border-[#e9e6e4]" data-aos="fade-left" data-aos-delay="500">
                             <div class="p-4">
                                 <h4 class="font-medium text-gray-900">Poster Tarif Retribusi</h4>
                                 <p class="text-sm text-gray-600 mt-1">Lihat ringkasan tarif retribusi dalam satu poster.</p>

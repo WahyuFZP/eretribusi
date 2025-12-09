@@ -186,7 +186,15 @@ class BillController extends Controller
         }
 
         // Ensure the listing view has the expected variables (pagination/list)
-        $bills = Bill::latest()->paginate(10);
+        // Scope Bill Admin Melihat semua Tagihan dan User hanya Tagihan miliknya
+        $query = Bill::with('company')->latest();
+        if($user && ! $isAdmin){
+            $query = Bill::whereHas('company', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->with('company')->Latest();
+        }
+        $bills = $query->paginate(10);
+
 
         $viewData = [
             'payment' => $payment,
@@ -200,5 +208,7 @@ class BillController extends Controller
 
         return view('payments.index', $viewData);
     }
+
+    
 
 }

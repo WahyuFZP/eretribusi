@@ -19,6 +19,8 @@ return new class extends Migration
             $table->unsignedBigInteger('amount')->default(0);
             $table->string('status')->default('pending');
             $table->string('snap_token')->nullable();
+            $table->timestamp('paid_at')->nullable();
+            $table->json('gateway_response')->nullable();
             $table->timestamps();
         });
     }

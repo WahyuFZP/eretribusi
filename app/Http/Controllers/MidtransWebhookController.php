@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use App\Models\Payment;
 use App\Models\Bill;
+use App\Models\Payment;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 
 class MidtransWebhookController extends Controller
 {
@@ -18,12 +19,16 @@ class MidtransWebhookController extends Controller
     {
         Log::info('Received Midtrans notification', ['payload' => $request->all()]);
 
+        \Midtrans\Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        \Midtrans\Config::$isProduction = false;
+        \Midtrans\Config::$isSanitized = true;
+        \Midtrans\Config::$is3ds = true;
         try {
             // Use Midtrans SDK helper to parse/validate notification when available
             $notif = new \Midtrans\Notification();
         } catch (\Throwable $e) {
             // Fallback: use raw request payload
-            Log::warning('Midtrans Notification class unavailable, using raw payload: '.$e->getMessage());
+            Log::warning('Midtrans Notification class unavailable, using raw payload: ' . $e->getMessage());
             $notif = (object) $request->all();
         }
 
@@ -43,11 +48,11 @@ class MidtransWebhookController extends Controller
             return response()->json(['ok' => true, 'message' => 'payment_not_found'], 200);
         }
 
-        // Save raw gateway response for auditing
+        // Save raw gateway response for auditing (optional, comment if column doesn't exist)
         try {
             $payment->gateway_response = $request->all();
         } catch (\Throwable $e) {
-            Log::warning('Failed to set gateway_response: '.$e->getMessage());
+            Log::warning('Failed to set gateway_response: ' . $e->getMessage());
         }
 
         $newStatus = $payment->status;
@@ -85,6 +90,7 @@ class MidtransWebhookController extends Controller
 
         $payment->status = $newStatus;
 
+        // Only set paid_at if column exists (uncomment if you have paid_at column)
         if (in_array($newStatus, ['paid', 'settled'])) {
             $payment->paid_at = now();
         }
@@ -92,7 +98,7 @@ class MidtransWebhookController extends Controller
         try {
             $payment->save();
         } catch (\Throwable $e) {
-            Log::error('Failed to save payment after Midtrans notification: '.$e->getMessage());
+            Log::error('Failed to save payment after Midtrans notification: ' . $e->getMessage());
             return response()->json(['ok' => false], 500);
         }
 
@@ -106,7 +112,7 @@ class MidtransWebhookController extends Controller
                 $bill->save();
             }
         } catch (\Throwable $e) {
-            Log::warning('Failed to update bill from Midtrans notification: '.$e->getMessage());
+            Log::warning('Failed to update bill from Midtrans notification: ' . $e->getMessage());
         }
 
         Log::info('Midtrans notification processed', ['order_id' => $orderId, 'status' => $newStatus]);
