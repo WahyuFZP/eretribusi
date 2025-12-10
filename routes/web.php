@@ -144,6 +144,25 @@ Route::get('bills/{bill}/pay', [BillController::class, 'pay'])
     ->middleware(['auth'])
     ->name('bills.pay');
 
+// Route to export bill as PDF
+Route::get('bills/{bill}/export-pdf', [BillController::class, 'exportPdf'])
+    ->middleware(['auth'])
+    ->name('bills.export-pdf');
+
+// Admin bulk export routes
+Route::get('admin/bills/bulk-export', [BillController::class, 'showBulkExportForm'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.bills.bulk-export-form');
+
+Route::post('admin/bills/bulk-export', [BillController::class, 'bulkExportPdf'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.bills.bulk-export');
+
+// Admin summary report export
+Route::post('admin/bills/summary-report', [BillController::class, 'exportSummaryPdf'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.bills.summary-report');
+
 // Midtrans payment notification webhook via web.php (ensure CSRF exemption)
 // Route::post('/midtrans/webhook', [MidtransWebhookController::class, 'notification'])
 //     ->name('midtrans.notification')

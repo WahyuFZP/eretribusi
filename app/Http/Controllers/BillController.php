@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use Illuminate\Support\Facades\Log;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use ZipArchive;
 
 class BillController extends Controller
 {
@@ -207,6 +210,285 @@ class BillController extends Controller
         }
 
         return view('payments.index', $viewData);
+    }
+
+    /**
+     * Export bill to PDF
+     */
+    public function exportPdf(Request $request, Bill $bill)
+    {
+        // Simple authorization check
+        $user = $request->user();
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $isAdmin = method_exists($user, 'hasRole') ? $user->hasRole(['super-admin', 'admin']) : false;
+        $isOwner = $bill->company && $bill->company->user_id === $user->id;
+
+        if (!$isAdmin && !$isOwner) {
+            abort(403);
+        }
+
+        // Prepare data for PDF
+        $data = [
+            'bill' => $bill,
+            'company' => $bill->company,
+            'payments' => $bill->payments ?? collect(),
+            'generated_at' => now()->format('d/m/Y H:i:s'),
+        ];
+
+        // Create HTML content
+        $html = view('pdf.invoice', $data)->render();
+
+        // Configure dompdf
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+
+        // Create PDF
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // Download PDF
+        $filename = 'invoice-' . $bill->bill_number . '-' . now()->format('Ymd') . '.pdf';
+        
+        return response()->streamDownload(function() use ($dompdf) {
+            echo $dompdf->output();
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
+    /**
+     * Bulk export invoices for admin
+     */
+    public function bulkExportPdf(Request $request)
+    {
+        // Only admin can access
+        $user = $request->user();
+        if (!$user || !method_exists($user, 'hasRole') || !$user->hasRole(['super-admin', 'admin'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Get filter parameters
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month');
+        $company_id = $request->input('company_id');
+
+        // Build query
+        $query = Bill::with(['company', 'payments']);
+
+        // Filter by year
+        if ($year) {
+            $query->whereYear('created_at', $year);
+        }
+
+        // Filter by month if specified
+        if ($month) {
+            $query->whereMonth('created_at', $month);
+        }
+
+        // Filter by company if specified
+        if ($company_id) {
+            $query->where('company_id', $company_id);
+        }
+
+        $bills = $query->orderBy('created_at', 'desc')->get();
+
+        if ($bills->isEmpty()) {
+            return back()->with('error', 'Tidak ada data tagihan untuk periode yang dipilih.');
+        }
+
+        // Create temp directory for PDFs
+        $tempDir = storage_path('app/temp/bulk-invoices-' . uniqid());
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $pdfPaths = [];
+
+        // Configure dompdf once
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+
+        foreach ($bills as $bill) {
+            try {
+                // Prepare data for PDF
+                $data = [
+                    'bill' => $bill,
+                    'company' => $bill->company,
+                    'payments' => $bill->payments ?? collect(),
+                    'generated_at' => now()->format('d/m/Y H:i:s'),
+                ];
+
+                // Create HTML content
+                $html = view('pdf.invoice', $data)->render();
+
+                // Create PDF
+                $dompdf = new Dompdf($options);
+                $dompdf->loadHtml($html);
+                $dompdf->setPaper('A4', 'portrait');
+                $dompdf->render();
+
+                // Save PDF to temp file
+                $filename = 'invoice-' . $bill->bill_number . '.pdf';
+                $filePath = $tempDir . '/' . $filename;
+                file_put_contents($filePath, $dompdf->output());
+                $pdfPaths[] = $filePath;
+
+            } catch (\Exception $e) {
+                Log::error('Error generating PDF for bill ' . $bill->id . ': ' . $e->getMessage());
+                continue; // Skip this bill and continue with others
+            }
+        }
+
+        if (empty($pdfPaths)) {
+            return back()->with('error', 'Gagal generate PDF untuk periode yang dipilih.');
+        }
+
+        // Create ZIP file
+        $zipFileName = 'bulk-invoices-' . $year . ($month ? '-' . str_pad($month, 2, '0', STR_PAD_LEFT) : '') . '-' . now()->format('Ymd-His') . '.zip';
+        $zipPath = storage_path('app/temp/' . $zipFileName);
+
+        $zip = new ZipArchive();
+        if ($zip->open($zipPath, ZipArchive::CREATE) !== TRUE) {
+            return back()->with('error', 'Gagal membuat file ZIP.');
+        }
+
+        foreach ($pdfPaths as $pdfPath) {
+            $zip->addFile($pdfPath, basename($pdfPath));
+        }
+        $zip->close();
+
+        // Clean up temp PDFs
+        foreach ($pdfPaths as $pdfPath) {
+            unlink($pdfPath);
+        }
+        rmdir($tempDir);
+
+        // Download ZIP and clean up
+        return response()->download($zipPath, $zipFileName)->deleteFileAfterSend();
+    }
+
+    /**
+     * Show bulk export form for admin
+     */
+    public function showBulkExportForm(Request $request)
+    {
+        // Only admin can access
+        $user = $request->user();
+        if (!$user || !method_exists($user, 'hasRole') || !$user->hasRole(['super-admin', 'admin'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $companies = Company::orderBy('name')->get();
+        $years = range(date('Y'), date('Y') - 5); // Last 5 years
+        
+        return view('admin.bulk-export', compact('companies', 'years'));
+    }
+
+    /**
+     * Export summary report PDF (all invoices in one PDF)
+     */
+    public function exportSummaryPdf(Request $request)
+    {
+        // Only admin can access
+        $user = $request->user();
+        if (!$user || !method_exists($user, 'hasRole') || !$user->hasRole(['super-admin', 'admin'])) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Get filter parameters
+        $year = $request->input('year', now()->year);
+        $month = $request->input('month');
+        $company_id = $request->input('company_id');
+
+        // Build query
+        $query = Bill::with(['company', 'payments']);
+
+        // Filter by year
+        if ($year) {
+            $query->whereYear('created_at', $year);
+        }
+
+        // Filter by month if specified
+        if ($month) {
+            $query->whereMonth('created_at', $month);
+        }
+
+        // Filter by company if specified
+        if ($company_id) {
+            $query->where('company_id', $company_id);
+        }
+
+        $bills = $query->orderBy('created_at', 'desc')->get();
+
+        if ($bills->isEmpty()) {
+            return back()->with('error', 'Tidak ada data tagihan untuk periode yang dipilih.');
+        }
+
+        // Calculate summary data
+        $totalAmount = $bills->sum('amount');
+        $totalPaid = $bills->sum('paid_amount');
+        $totalOutstanding = $totalAmount - $totalPaid;
+        $totalPaidCount = $bills->where('status', 'paid')->count();
+        $totalUnpaidCount = $bills->where('status', 'unpaid')->count();
+
+        // Prepare data for PDF
+        $data = [
+            'bills' => $bills,
+            'year' => $year,
+            'month' => $month,
+            'month_name' => $month ? \Carbon\Carbon::create()->month($month)->format('F') : null,
+            'company' => $company_id ? \App\Models\Company::find($company_id) : null,
+            'summary' => [
+                'total_amount' => $totalAmount,
+                'total_paid' => $totalPaid,
+                'total_outstanding' => $totalOutstanding,
+                'paid_count' => $totalPaidCount,
+                'unpaid_count' => $totalUnpaidCount,
+                'total_count' => $bills->count(),
+            ],
+            'generated_at' => now()->format('d/m/Y H:i:s'),
+        ];
+
+        // Create HTML content
+        $html = view('pdf.summary-report', $data)->render();
+
+        // Configure dompdf
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+
+        // Create PDF
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape'); // Landscape untuk tabel yang lebih lebar
+        $dompdf->render();
+
+        // Generate filename
+        $filename = 'laporan-invoice-' . $year;
+        if ($month) {
+            $filename .= '-' . str_pad($month, 2, '0', STR_PAD_LEFT);
+        }
+        if ($company_id) {
+            $filename .= '-' . Str::slug($data['company']->name ?? 'company');
+        }
+        $filename .= '-' . now()->format('Ymd') . '.pdf';
+
+        // Download PDF
+        return response()->streamDownload(function() use ($dompdf) {
+            echo $dompdf->output();
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     

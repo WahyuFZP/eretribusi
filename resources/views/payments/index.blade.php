@@ -4,8 +4,21 @@
     <div class="container mx-auto p-4">
         <div class="card bg-base-100 shadow">
             <div class="card-body">
-                <h2 class="card-title">Daftar Pembayaran / Invoice</h2>
-                <p class="text-sm text-gray-500">Halaman dummy untuk admin — menampilkan invoice_number dan status.</p>
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="card-title">Daftar Pembayaran / Invoice</h2>
+                        <p class="text-sm text-gray-500">Halaman dummy untuk admin — menampilkan invoice_number dan status.</p>
+                    </div>
+                    
+                    @if(auth()->user() && method_exists(auth()->user(), 'hasRole') && auth()->user()->hasRole(['super-admin', 'admin']))
+                        <div class="flex gap-2">
+                            <a href="{{ route('admin.bills.bulk-export-form') }}" class="btn btn-secondary">
+                                <i class="fas fa-download"></i> 
+                                Bulk Export
+                            </a>
+                        </div>
+                    @endif
+                </div>
 
                 <div class="mt-4">
                     <form method="get" action="{{ route('payments.index') }}" class="mb-4">
@@ -38,15 +51,18 @@
                                         <td>{{ number_format($bill->paid_amount ?? 0, 0, ',', '.') }}</td>
                                         <td>
                                             <div class="flex flex-col gap-1">
-                                                @if(isset($bill->latestPayment) && $bill->latestPayment)
+                                                @if (isset($bill->latestPayment) && $bill->latestPayment)
                                                     @php $p = $bill->latestPayment; @endphp
                                                     <div class="text-xs mt-1">Pembayaran:
-                                                        @if($p->status === 'paid')
-                                                            <span class="badge badge-success">{{ strtoupper($p->status) }}</span>
-                                                        @elseif(in_array($p->status, ['pending','challenge']))
-                                                            <span class="badge badge-warning">{{ strtoupper($p->status) }}</span>
+                                                        @if ($p->status === 'paid')
+                                                            <span
+                                                                class="badge badge-success">{{ strtoupper($p->status) }}</span>
+                                                        @elseif(in_array($p->status, ['pending', 'challenge']))
+                                                            <span
+                                                                class="badge badge-warning">{{ strtoupper($p->status) }}</span>
                                                         @else
-                                                            <span class="badge badge-secondary">{{ strtoupper($p->status) }}</span>
+                                                            <span
+                                                                class="badge badge-secondary">{{ strtoupper($p->status) }}</span>
                                                         @endif
                                                     </div>
                                                 @endif
@@ -55,15 +71,18 @@
                                         <td>{{ optional($bill->issued_at)?->format('Y-m-d') ?? ($bill->created_at?->format('Y-m-d') ?? '-') }}
                                         </td>
                                         <td>
-                                            <a href="#" class="btn btn-sm btn-outline">Lihat</a>
+                                            <a href="{{ route('bills.export-pdf', $bill) }}" class="btn btn-sm btn-secondary">
+                                                <i class="fas fa-file-pdf"></i> PDF
+                                            </a>
                                             @php $latest = $bill->latestPayment ?? null; @endphp
-                                            @if($bill->status === 'paid' || ($latest && $latest->status === 'paid'))
+                                            @if ($bill->status === 'paid' || ($latest && $latest->status === 'paid'))
                                                 <span class="badge badge-success">Lunas</span>
                                             @else
-                                                @if(isset($payment) && $payment->bill_id == $bill->id)
+                                                @if (isset($payment) && $payment->bill_id == $bill->id)
                                                     <button id="pay-button" class="btn btn-sm btn-info">Bayar</button>
                                                 @else
-                                                    <a href="{{ route('bills.pay', $bill) }}" class="btn btn-sm btn-info">Bayar</a>
+                                                    <a href="{{ route('bills.pay', $bill) }}"
+                                                        class="btn btn-sm btn-info">Bayar</a>
                                                 @endif
                                             @endif
                                         </td>
@@ -116,7 +135,7 @@
                     openSnap();
                 } else {
                     // if script loads slightly later
-                    window.addEventListener('load', function(){
+                    window.addEventListener('load', function() {
                         if (typeof snap !== 'undefined') openSnap();
                     });
                 }
