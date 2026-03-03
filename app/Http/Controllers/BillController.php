@@ -21,22 +21,53 @@ class BillController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // minimal index to power admin/tagihan view
-        $bills = Bill::latest()->paginate(10);
+        $q = trim((string) $request->query('q'));
+        $companyId = $request->query('company_id');
 
-        // Precompute active (unpaid/partial) bills sums per company to avoid calling relations in the view
-        $companies = Company::orderBy('name')
-            ->withSum([
-                // alias with constraint: sum 'amount' for bills that are not paid
-                'bills as active_bills_sum' => function ($q) {
-                    $q->where('status', '<>', 'paid');
-                }
-            ], 'amount')
-            ->get();
+        // Base companies options for the filter dropdown (unfiltered)
+        $companyOptions = Company::orderBy('name')->get();
 
-        return view('admin.tagihan.index', compact('bills', 'companies'));
+        // If no filter, show companies summary table. If filtered, show bills table.
+        $companies = collect();
+        $bills = null;
+
+        if (!$q && !$companyId) {
+            $companies = Company::orderBy('name')
+                ->withSum([
+                    'bills as active_bills_sum' => function ($qsum) {
+                        // Exclude bills that are already settled (paid) or still pending if desired
+                        $qsum->whereNotIn('status', ['paid', 'pending']);
+                    }
+                ], 'amount')
+                ->get();
+        } else {
+            $query = Bill::with('company')->latest();
+
+            if ($companyId) {
+                $query->where('company_id', $companyId);
+            }
+
+            if ($q) {
+                $query->where(function ($qb) use ($q) {
+                    $qb->where('bill_number', 'like', "%{$q}%")
+                        ->orWhereHas('company', function ($qc) use ($q) {
+                            $qc->where('name', 'like', "%{$q}%")
+                               ->orWhere('email', 'like', "%{$q}%")
+                               ->orWhere('code', 'like', "%{$q}%");
+                        });
+                });
+            }
+
+            $bills = $query->paginate(10);
+        }
+
+        return view('admin.tagihan.index', [
+            'bills' => $bills,
+            'companies' => $companies,
+            'companyOptions' => $companyOptions,
+        ]);
     }
 
     /**
@@ -86,6 +117,31 @@ class BillController extends Controller
                 'created_by' => $request->user()->id ?? null,
             ];
 
+            // Handle recurring bill setup
+            if (!empty($data['is_recurring']) && $data['is_recurring']) {
+                $attrs['is_recurring'] = true;
+                $attrs['recurring_frequency'] = $data['recurring_frequency'] ?? 'monthly';
+                
+                // Set recurring day of month from due_date if provided
+                if (!empty($data['due_date'])) {
+                    $dueDate = \Carbon\Carbon::parse($data['due_date']);
+                    $attrs['recurring_day_of_month'] = $dueDate->day;
+                    
+                    // Calculate next billing date based on frequency
+                    $nextBillingDate = match ($attrs['recurring_frequency']) {
+                        'monthly' => $dueDate->copy()->addMonth(),
+                        'yearly' => $dueDate->copy()->addYear(),
+                        default => null,
+                    };
+                    
+                    if ($nextBillingDate) {
+                        $attrs['next_billing_date'] = $nextBillingDate->toDateString();
+                    }
+                }
+                
+                $attrs['issued_at'] = now();
+            }
+
             // handle document upload
             if ($request->hasFile('document')) {
                 $path = $request->file('document')->store('bills', 'public');
@@ -97,7 +153,14 @@ class BillController extends Controller
             return $bill;
         });
 
-        return redirect()->route('admin.tagihan.index')->with('success', 'Tagihan berhasil dibuat (No: ' . $bill->bill_number . ')');
+        $message = 'Tagihan berhasil dibuat (No: ' . $bill->bill_number . ')';
+        if ($bill->is_recurring) {
+            $message .= '. Tagihan otomatis akan dibuat setiap ' . 
+                       ($bill->recurring_frequency === 'monthly' ? 'bulan' : 'tahun') . 
+                       ' pada tanggal ' . $bill->recurring_day_of_month;
+        }
+
+        return redirect()->route('admin.tagihan.index')->with('success', $message);
     }
 
     /**
@@ -136,7 +199,7 @@ class BillController extends Controller
     {
         // prefer the request user to avoid issues when called in different contexts
         $user = $request->user();
-
+ 
         // ensure only authenticated users can create a payment
         if (! $user) {
             return redirect()->route('login');
@@ -188,7 +251,7 @@ class BillController extends Controller
             return back()->with('error', 'Gagal membuat transaksi pembayaran. Silakan coba lagi.');
         }
 
-        // Ensure the listing view has the expected variables (pagination/list)
+       
         // Scope Bill Admin Melihat semua Tagihan dan User hanya Tagihan miliknya
         $query = Bill::with('company')->latest();
         if($user && ! $isAdmin){
@@ -230,7 +293,6 @@ class BillController extends Controller
             abort(403);
         }
 
-        // Prepare data for PDF
         $data = [
             'bill' => $bill,
             'company' => $bill->company,
@@ -277,19 +339,82 @@ class BillController extends Controller
         // Get filter parameters
         $year = $request->input('year', now()->year);
         $month = $request->input('month');
+        // Normalize month to integer 1-12 if provided as name (supports EN/ID)
+        if ($month) {
+            $map = [
+                'january' => 1, 'jan' => 1, 'januari' => 1,
+                'february' => 2, 'feb' => 2, 'februari' => 2,
+                'march' => 3, 'mar' => 3, 'maret' => 3,
+                'april' => 4,
+                'may' => 5, 'mei' => 5,
+                'june' => 6, 'jun' => 6, 'juni' => 6,
+                'july' => 7, 'jul' => 7, 'juli' => 7,
+                'august' => 8, 'aug' => 8, 'agustus' => 8,
+                'september' => 9, 'sep' => 9,
+                'october' => 10, 'oct' => 10, 'oktober' => 10,
+                'november' => 11, 'nov' => 11,
+                'december' => 12, 'dec' => 12, 'desember' => 12,
+            ];
+            if (!is_numeric($month)) {
+                $key = strtolower(trim($month));
+                if (isset($map[$key])) {
+                    $month = $map[$key];
+                }
+            } else {
+                $month = (int) $month;
+            }
+            if (!is_int($month) || $month < 1 || $month > 12) {
+                $month = null;
+            }
+        }
+        // Normalize month to integer 1-12 if provided as name (supports EN/ID)
+        if ($month) {
+            $map = [
+                'january' => 1, 'jan' => 1, 'januari' => 1,
+                'february' => 2, 'feb' => 2, 'februari' => 2,
+                'march' => 3, 'mar' => 3, 'maret' => 3,
+                'april' => 4,
+                'may' => 5, 'mei' => 5,
+                'june' => 6, 'jun' => 6, 'juni' => 6,
+                'july' => 7, 'jul' => 7, 'juli' => 7,
+                'august' => 8, 'aug' => 8, 'agustus' => 8,
+                'september' => 9, 'sep' => 9,
+                'october' => 10, 'oct' => 10, 'oktober' => 10,
+                'november' => 11, 'nov' => 11,
+                'december' => 12, 'dec' => 12, 'desember' => 12,
+            ];
+            if (!is_numeric($month)) {
+                $key = strtolower(trim($month));
+                if (isset($map[$key])) {
+                    $month = $map[$key];
+                }
+            } else {
+                $month = (int) $month;
+            }
+            if (!is_int($month) || $month < 1 || $month > 12) {
+                $month = null;
+            }
+        }
+        
         $company_id = $request->input('company_id');
 
         // Build query
         $query = Bill::with(['company', 'payments']);
 
-        // Filter by year
-        if ($year) {
+        // Filter by year (align with payment year when month filter is used)
+        if ($year && !$month) {
+            // No month filter: use bill creation year
             $query->whereYear('created_at', $year);
         }
 
-        // Filter by month if specified
+        // Filter strictly by payment month (and year)
         if ($month) {
-            $query->whereMonth('created_at', $month);
+            $query->whereHas('payments', function($p) use ($month, $year) {
+                $p->whereMonth('paid_at', $month);
+                if ($year) {
+                    $p->whereYear('paid_at', $year);
+                }
+            });
         }
 
         // Filter by company if specified
@@ -419,8 +544,37 @@ class BillController extends Controller
 
         // Filter by month if specified
         if ($month) {
-            $query->whereMonth('created_at', $month);
-        }
+    $map = [
+        'january' => 1, 'jan' => 1, 'januari' => 1,
+        'february' => 2, 'feb' => 2, 'februari' => 2,
+        'march' => 3, 'mar' => 3, 'maret' => 3,
+        'april' => 4,
+        'may' => 5, 'mei' => 5,
+        'june' => 6, 'jun' => 6, 'juni' => 6,
+        'july' => 7, 'jul' => 7, 'juli' => 7,
+        'august' => 8, 'aug' => 8, 'agustus' => 8,
+        'september' => 9, 'sep' => 9,
+        'october' => 10, 'oct' => 10, 'oktober' => 10,
+        'november' => 11, 'nov' => 11,
+        'december' => 12, 'dec' => 12, 'desember' => 12,
+    ];
+
+    if (!is_numeric($month)) {
+        $key = strtolower(trim($month));
+        $month = $map[$key] ?? null;
+    } else {
+        $month = (int) $month;
+    }
+
+    if ($month < 1 || $month > 12) {
+        $month = null;
+    }
+}
+if ($month) {
+    $query->whereHas('payments', function ($p) use ($month) {
+        $p->whereMonth('paid_at', $month);
+    });
+}
 
         // Filter by company if specified
         if ($company_id) {
@@ -440,12 +594,19 @@ class BillController extends Controller
         $totalPaidCount = $bills->where('status', 'paid')->count();
         $totalUnpaidCount = $bills->where('status', 'unpaid')->count();
 
+        // Prepare month name safely
+        $monthName = null;
+        if ($month) {
+            $locale = app()->getLocale();
+            $monthName = \Carbon\Carbon::create()->locale($locale)->month($month)->isoFormat('MMMM');
+        }
+
         // Prepare data for PDF
         $data = [
             'bills' => $bills,
             'year' => $year,
             'month' => $month,
-            'month_name' => $month ? \Carbon\Carbon::create()->month($month)->format('F') : null,
+            'month_name' => $monthName,
             'company' => $company_id ? \App\Models\Company::find($company_id) : null,
             'summary' => [
                 'total_amount' => $totalAmount,
@@ -489,6 +650,120 @@ class BillController extends Controller
         }, $filename, [
             'Content-Type' => 'application/pdf',
         ]);
+    }
+
+    /**
+     * Setup recurring billing for an existing bill
+     */
+    public function setupRecurring(Request $request, Bill $bill)
+    {
+        // Authorization check
+        $user = $request->user();
+        $isAdmin = method_exists($user, 'hasRole') ? $user->hasRole(['super-admin', 'admin']) : false;
+        
+        if (!$isAdmin) {
+            abort(403, 'Only admin can setup recurring billing');
+        }
+
+        $request->validate([
+            'recurring_frequency' => 'required|in:monthly,yearly',
+            'recurring_day_of_month' => 'required|integer|min:1|max:31',
+            'start_date' => 'required|date|after_or_equal:today',
+        ]);
+
+        $startDate = \Carbon\Carbon::parse($request->start_date);
+        
+        // Calculate next billing date
+        $nextBillingDate = match ($request->recurring_frequency) {
+            'monthly' => $startDate->copy()->addMonth()->day($request->recurring_day_of_month),
+            'yearly' => $startDate->copy()->addYear()->day($request->recurring_day_of_month),
+            default => null,
+        };
+
+        $bill->update([
+            'is_recurring' => true,
+            'recurring_frequency' => $request->recurring_frequency,
+            'recurring_day_of_month' => $request->recurring_day_of_month,
+            'next_billing_date' => $nextBillingDate,
+        ]);
+
+        $message = 'Tagihan otomatis berhasil diaktifkan. ' .
+                  'Tagihan selanjutnya akan dibuat otomatis setiap ' .
+                  ($request->recurring_frequency === 'monthly' ? 'bulan' : 'tahun') .
+                  ' pada tanggal ' . $request->recurring_day_of_month;
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Disable recurring billing
+     */
+    public function disableRecurring(Request $request, Bill $bill)
+    {
+        $user = $request->user();
+        $isAdmin = method_exists($user, 'hasRole') ? $user->hasRole(['super-admin', 'admin']) : false;
+        
+        if (!$isAdmin) {
+            abort(403, 'Only admin can disable recurring billing');
+        }
+
+        $bill->update([
+            'is_recurring' => false,
+            'recurring_frequency' => null,
+            'recurring_day_of_month' => null,
+            'next_billing_date' => null,
+        ]);
+
+        return back()->with('success', 'Tagihan otomatis berhasil dinonaktifkan');
+    }
+
+    /**
+     * Manually generate next recurring bill
+     */
+    public function generateNext(Request $request, Bill $bill)
+    {
+        $user = $request->user();
+        $isAdmin = method_exists($user, 'hasRole') ? $user->hasRole(['super-admin', 'admin']) : false;
+        
+        if (!$isAdmin) {
+            abort(403, 'Only admin can generate bills manually');
+        }
+
+        if (!$bill->is_recurring) {
+            return back()->with('error', 'Tagihan ini bukan tagihan otomatis');
+        }
+
+        try {
+            $newBill = $bill->generateNextBill();
+            
+            if ($newBill) {
+                return back()->with('success', 'Tagihan baru berhasil dibuat: ' . $newBill->bill_number);
+            } else {
+                return back()->with('warning', 'Tagihan untuk periode ini sudah ada');
+            }
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membuat tagihan: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Show recurring bills management page
+     */
+    public function recurringIndex(Request $request)
+    {
+        $user = $request->user();
+        $isAdmin = method_exists($user, 'hasRole') ? $user->hasRole(['super-admin', 'admin']) : false;
+        
+        if (!$isAdmin) {
+            abort(403);
+        }
+
+        $recurringBills = Bill::where('is_recurring', true)
+            ->with(['company', 'childBills'])
+            ->orderBy('next_billing_date')
+            ->paginate(15);
+
+        return view('admin.tagihan.recurring', compact('recurringBills'));
     }
 
     

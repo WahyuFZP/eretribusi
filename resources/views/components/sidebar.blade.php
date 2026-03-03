@@ -19,7 +19,8 @@
             <!-- Sidebar Header -->
             <div class="p-4 border-b border-base-300">
                 <div class="flex items-center space-x-3">
-                    <x-application-logo class="h-8 w-8 fill-current text-primary" />
+                    <img src="{{ asset('images/dlh.png') }}" alt="{{ config('app.name', 'E-Retribusi') }} logo"
+                        class="h-8 w-auto" />
                     <div>
                         <h2 class="font-bold text-lg">{{ config('app.name', 'e-Retribusi') }}</h2>
                         <p class="text-xs text-base-content/60">Integrated System Payment</p>
@@ -60,26 +61,6 @@
                             </a>
                         </li>
                     @endrole
-                    <li>
-                        <a href="#" class="{{ request()->routeIs('retribusi.*') ? 'active' : '' }}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
-                                </path>
-                            </svg>
-                            {{ __('Jenis Retribusi') }}
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="{{ request()->routeIs('tarif.*') ? 'active' : '' }}">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1">
-                                </path>
-                            </svg>
-                            {{ __('Tarif Retribusi') }}
-                        </a>
-                    </li>
 
                     {{-- Data Perusahaan Section --}}
                     <li class="menu-title">
@@ -89,31 +70,35 @@
                         <li>
                             <a href="{{ route('admin.company.index') }}"
                                 class="{{ request()->routeIs('admin.company*') ? 'active' : '' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-</svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                </svg>
 
                                 {{ __('Perusahaan') }}
                             </a>
                         </li>
                     @endrole
 
-                        <!-- Perusahaan for User Role -->
-                        @role('user')
+                    <!-- Perusahaan for User Role -->
+                    @role('user')
                         <li>
                             <a href="{{ route('users.company.index') }}"
                                 class="{{ request()->routeIs('users.company*') ? 'active' : '' }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-</svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                                </svg>
 
                                 {{ __('Perusahaan Anda') }}
                             </a>
                         </li>
-                        @endrole
+                    @endrole
 
 
-                        <!-- Transaksi Section -->
+                    <!-- Transaksi Section -->
                     <li class="menu-title">
                         <span>Transaksi</span>
                     </li>

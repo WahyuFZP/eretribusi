@@ -42,8 +42,85 @@
 
     </header>
 
+    <!-- Welcome Popup Modal -->
+    <div id="welcomeModal" class="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 transform transition-all duration-200 scale-95 opacity-0" id="modalContent">
+            <div class="p-6">
+                <!-- Close Button -->
+                <button id="closeModal" class="float-right text-gray-400 hover:text-gray-600 text-2xl font-bold leading-none hover:bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                    ×
+                </button>
+                
+                <!-- Modal Header -->
+                <div class="text-center mb-6 pr-8">
+                    <img src="{{ asset('images/dlh.png') }}" alt="Logo" class="h-16 w-auto mx-auto mb-4" />
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Selamat Datang di E-Retribusi!</h2>
+                    <p class="text-gray-600">Pilih opsi yang sesuai dengan status Anda</p>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="space-y-3">
+                    <a href="{{ route('register') }}" 
+                       class="block w-full bg-[#0b4b3f] hover:bg-[#0a3d32] text-white text-center py-4 px-4 rounded-lg font-medium transition-all transform hover:scale-[1.02] hover:shadow-lg">
+                        <div class="flex items-center justify-center gap-3 mb-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-3-2a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="font-semibold">Saya Pengguna Baru</span>
+                        </div>
+                        <small class="text-green-200">Daftar akun untuk mulai menggunakan sistem</small>
+                    </a>
+
+                    <a href="{{ route('login') }}" 
+                       class="block w-full bg-white hover:bg-gray-50 text-gray-800 text-center py-4 px-4 rounded-lg font-medium border-2 border-gray-300 hover:border-[#0b4b3f] transition-all transform hover:scale-[1.02] hover:shadow-lg">
+                        <div class="flex items-center justify-center gap-3 mb-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                            </svg>
+                            <span class="font-semibold">Saya Sudah Memiliki Akun</span>
+                        </div>
+                        <small class="text-gray-600">Masuk ke akun yang sudah ada</small>
+                    </a>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="mt-6 text-center">
+                    <button id="skipModal" class="text-sm text-gray-500 hover:text-gray-700 underline hover:no-underline transition-all">
+                        Lewati dan lihat halaman ini dulu
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    #welcomeModal {
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+    }
+    
+    #modalContent {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    .modal-animate-in {
+        animation: modalFadeIn 0.3s ease-out;
+    }
+    </style>
+
     <section id="home" class="bg-white text-gray-800 py-20">
-        <div class="container mx-auto flex flex-col lg:flex-row items-center gap-8" data-aos="fade-up" data-aos-delay="100" >
+        <div class="container mx-auto flex flex-col lg:flex-row items-center gap-8" data-aos="fade-up" data-aos-delay="50" >
             <div class="flex-1">
                 <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">Bebas Bayar — Kelola Tagihan dan Retribusi
                     dengan Mudah</h1>
@@ -394,5 +471,81 @@
             </div>
         </nav>
     </footer>
+
+    <!-- Welcome Modal JavaScript -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('welcomeModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeBtn = document.getElementById('closeModal');
+        const skipBtn = document.getElementById('skipModal');
+        
+        // Check if user has already seen the modal
+        const hasSeenModal = localStorage.getItem('hasSeenWelcomeModal');
+        
+        // Only show modal if user hasn't seen it and is not authenticated
+        @guest
+        if (!hasSeenModal) {
+            // Show modal after a short delay for better UX
+            setTimeout(() => {
+                showModal();
+            }, 1000);
+        }
+        @endguest
+        
+        function showModal() {
+            modal.classList.remove('hidden');
+            // Trigger animations
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100', 'modal-animate-in');
+            }, 10);
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideModal() {
+            // Animation out
+            modalContent.classList.remove('scale-100', 'opacity-100', 'modal-animate-in');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 200);
+        }
+        
+        function markModalAsSeen() {
+            localStorage.setItem('hasSeenWelcomeModal', 'true');
+            hideModal();
+        }
+        
+        // Event listeners
+        closeBtn.addEventListener('click', markModalAsSeen);
+        skipBtn.addEventListener('click', markModalAsSeen);
+        
+        // Close on backdrop click
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                markModalAsSeen();
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+                markModalAsSeen();
+            }
+        });
+        
+        // Optional: Reset modal visibility (untuk testing/development)
+        // Uncomment salah satu baris di bawah untuk testing:
+        localStorage.removeItem('hasSeenWelcomeModal'); // Reset setiap kali refresh
+        // localStorage.clear(); // Reset semua localStorage
+        
+        // Untuk production, pastikan kedua baris di atas di-comment!
+    });
+    </script>
 
 @endsection

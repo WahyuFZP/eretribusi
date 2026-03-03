@@ -103,6 +103,35 @@
                     @error('notes') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
                 </div>
 
+                {{-- Recurring Settings --}}
+                <div class="card bg-base-200 p-4">
+                    <h3 class="font-semibold text-lg mb-4">⏰ Pengaturan Tagihan Otomatis</h3>
+                    
+                    <div class="form-control mb-4">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            <input type="checkbox" name="is_recurring" value="1" class="checkbox" id="recurring_toggle" {{ old('is_recurring') ? 'checked' : '' }}>
+                            <span class="label-text">Aktifkan tagihan otomatis berulang</span>
+                        </label>
+                    </div>
+
+                    <div id="recurring_options" class="grid grid-cols-1 md:grid-cols-2 gap-4" style="display: {{ old('is_recurring') ? 'grid' : 'none' }}">
+                        <div>
+                            <label class="label"><span class="label-text">Frekuensi</span></label>
+                            <select name="recurring_frequency" class="select select-bordered w-full">
+                                <option value="monthly" {{ old('recurring_frequency') === 'monthly' ? 'selected' : '' }}>Bulanan</option>
+                                <option value="yearly" {{ old('recurring_frequency') === 'yearly' ? 'selected' : '' }}>Tahunan</option>
+                            </select>
+                            @error('recurring_frequency') <p class="text-sm text-error mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <div>
+                            <label class="label"><span class="label-text">Info Tanggal</span></label>
+                            <div class="p-3 bg-base-100 rounded border text-sm">
+                                Tanggal tagihan otomatis akan mengikuti tanggal jatuh tempo yang dipilih di atas.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {{-- Optional hidden field for prefilled company_id if provided and you want to submit it --}}
                 @if($prefillCompany && is_numeric($prefillCompany))
                     <input type="hidden" name="company_id" value="{{ $prefillCompany }}">
@@ -116,4 +145,15 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const recurringToggle = document.getElementById('recurring_toggle');
+    const recurringOptions = document.getElementById('recurring_options');
+    
+    recurringToggle.addEventListener('change', function() {
+        recurringOptions.style.display = this.checked ? 'grid' : 'none';
+    });
+});
+</script>
 @endsection

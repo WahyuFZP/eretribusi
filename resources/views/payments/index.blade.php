@@ -51,40 +51,56 @@
                                         <td>{{ number_format($bill->paid_amount ?? 0, 0, ',', '.') }}</td>
                                         <td>
                                             <div class="flex flex-col gap-1">
-                                                @if (isset($bill->latestPayment) && $bill->latestPayment)
-                                                    @php $p = $bill->latestPayment; @endphp
+                                                @php $billStatus = strtolower($bill->status ?? 'unpaid'); @endphp
+                                                <div class="text-xs">Tagihan:
+                                                    @if($billStatus === 'paid')
+                                                        <span class="badge badge-success">LUNAS</span>
+                                                    @elseif($billStatus === 'partial')
+                                                        <span class="badge badge-warning">SEBAGIAN</span>
+                                                    @elseif($billStatus === 'cancelled')
+                                                        <span class="badge">BATAL</span>
+                                                    @else
+                                                        <span class="badge badge-error">BELUM LUNAS</span>
+                                                    @endif
+                                                </div>
+
+                                                {{-- @if (isset($bill->latestPayment) && $bill->latestPayment)
+                                                    @php $p = $bill->latestPayment; $ps = strtolower($p->status ?? ''); @endphp
                                                     <div class="text-xs mt-1">Pembayaran:
-                                                        @if ($p->status === 'paid')
-                                                            <span
-                                                                class="badge badge-success">{{ strtoupper($p->status) }}</span>
-                                                        @elseif(in_array($p->status, ['pending', 'challenge']))
-                                                            <span
-                                                                class="badge badge-warning">{{ strtoupper($p->status) }}</span>
+                                                        @if (in_array($ps, ['paid','settlement','success','capture','captured']))
+                                                            <span class="badge badge-success">{{ strtoupper($p->status) }}</span>
+                                                        @elseif(in_array($ps, ['pending','challenge','authorize']))
+                                                            <span class="badge badge-warning">{{ strtoupper($p->status) }}</span>
+                                                        @elseif(in_array($ps, ['cancel','canceled','deny','expired']))
+                                                            <span class="badge badge-error">{{ strtoupper($p->status) }}</span>
                                                         @else
-                                                            <span
-                                                                class="badge badge-secondary">{{ strtoupper($p->status) }}</span>
+                                                            <span class="badge badge-secondary">{{ strtoupper($p->status ?? 'UNKNOWN') }}</span>
                                                         @endif
                                                     </div>
-                                                @endif
+                                                @else
+                                                    <div class="text-xs mt-1">Pembayaran: <span class="badge">—</span></div>
+                                                @endif --}}
                                             </div>
                                         </td>
                                         <td>{{ optional($bill->issued_at)?->format('Y-m-d') ?? ($bill->created_at?->format('Y-m-d') ?? '-') }}
                                         </td>
                                         <td>
-                                            <a href="{{ route('bills.export-pdf', $bill) }}" class="btn btn-sm btn-secondary">
-                                                <i class="fas fa-file-pdf"></i> PDF
-                                            </a>
-                                            @php $latest = $bill->latestPayment ?? null; @endphp
-                                            @if ($bill->status === 'paid' || ($latest && $latest->status === 'paid'))
-                                                <span class="badge badge-success">Lunas</span>
-                                            @else
-                                                @if (isset($payment) && $payment->bill_id == $bill->id)
-                                                    <button id="pay-button" class="btn btn-sm btn-info">Bayar</button>
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ route('bills.export-pdf', $bill) }}" class="btn btn-xs btn-secondary">
+                                                    PDF
+                                                </a>
+                                                <span class="text-gray-400">•</span>
+                                                @php $latest = $bill->latestPayment ?? null; $isPaid = ($bill->status === 'paid') || ($latest && strtolower($latest->status) === 'paid'); @endphp
+                                                @if ($isPaid)
+                                                    <span class="badge badge-success">Lunas</span>
                                                 @else
-                                                    <a href="{{ route('bills.pay', $bill) }}"
-                                                        class="btn btn-sm btn-info">Bayar</a>
+                                                    @if (isset($payment) && $payment->bill_id == $bill->id)
+                                                        <button id="pay-button" class="btn btn-xs btn-info">Bayar</button>
+                                                    @else
+                                                        <a href="{{ route('bills.pay', $bill) }}" class="btn btn-xs btn-info">Bayar</a>
+                                                    @endif
                                                 @endif
-                                            @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @empty

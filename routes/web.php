@@ -14,6 +14,8 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -34,7 +36,42 @@ Route::get('/dashboard', function (Request $request) {
     // Admins need a list of companies for the dashboard table
     if ($user->hasRole(['super-admin', 'admin'])) {
         $companies = Company::latest()->take(10)->get();
-        return view('admin.dashboard', compact('companies'));
+
+        // Stats cards (pull from database)
+        $totalCompanies = Company::count();
+
+        $paymentsToday = Payment::query()
+            ->whereDate('paid_at', now()->toDateString())
+            ->whereIn('status', ['paid','settlement','success','capture','captured'])
+            ->sum('amount');
+
+        $pendingBills = Bill::whereIn('status', ['unpaid','partial','pending'])->count();
+
+        $overdueAmount = DB::table('bills')
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', '<', now()->toDateString())
+            ->where('status', '!=', 'paid')
+            ->selectRaw('COALESCE(SUM(amount - paid_amount), 0) as total')
+            ->value('total');
+
+        // Recurring bills stats
+        $recurringBillsDue = Bill::where('is_recurring', true)
+            ->whereNotNull('next_billing_date')
+            ->where('next_billing_date', '<=', now()->toDateString())
+            ->count();
+
+        $totalRecurringBills = Bill::where('is_recurring', true)->count();
+
+        $stats = [
+            'total_companies' => (int) $totalCompanies,
+            'payments_today' => (int) $paymentsToday,
+            'pending_bills' => (int) $pendingBills,
+            'overdue_amount' => (float) $overdueAmount,
+            'recurring_bills_due' => (int) $recurringBillsDue,
+            'total_recurring_bills' => (int) $totalRecurringBills,
+        ];
+
+        return view('admin.dashboard', compact('companies', 'stats'));
     }
 
     return view('users.dashboard');
@@ -138,6 +175,54 @@ Route::get('admin/tagihan/create', [BillController::class, 'create'])
 Route::post('admin/tagihan', [BillController::class, 'store'])
     ->middleware(['auth', 'role:super-admin|admin'])
     ->name('admin.tagihan.store');
+
+// Admin Recurring Bills Management
+Route::get('admin/tagihan/recurring', [BillController::class, 'recurringIndex'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.tagihan.recurring');
+Route::post('admin/tagihan/{bill}/setup-recurring', [BillController::class, 'setupRecurring'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.tagihan.setup-recurring');
+Route::post('admin/tagihan/{bill}/disable-recurring', [BillController::class, 'disableRecurring'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.tagihan.disable-recurring');
+Route::post('admin/tagihan/{bill}/generate-next', [BillController::class, 'generateNext'])
+    ->middleware(['auth', 'role:super-admin|admin'])
+    ->name('admin.tagihan.generate-next');
+
+// API endpoint for AJAX generate recurring bills
+Route::post('admin/api/generate-recurring-bills', function (Request $request) {
+    $user = $request->user();
+    if (!$user || !$user->hasRole(['super-admin', 'admin'])) {
+        return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
+    }
+    
+    try {
+        // Run the artisan command programmatically
+        Artisan::call('bills:generate-recurring');
+        
+        // Get the command output to extract generated count
+        $output = Artisan::output();
+        
+        // Parse the output to get generated count (simple regex)
+        preg_match('/Generated: (\d+) new bills/', $output, $matches);
+        $generatedCount = isset($matches[1]) ? (int)$matches[1] : 0;
+        
+        return response()->json([
+            'success' => true,
+            'generated' => $generatedCount,
+            'message' => $generatedCount > 0 ? "Berhasil generate {$generatedCount} tagihan baru" : "Tidak ada tagihan yang perlu di-generate"
+        ]);
+        
+    } catch (\Exception $e) {
+        Log::error('API generate recurring bills error: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal generate tagihan: ' . $e->getMessage()
+        ], 500);
+    }
+})->middleware(['auth', 'role:super-admin|admin']);
 
 // Route to initiate payment for a bill (requires authentication)
 Route::get('bills/{bill}/pay', [BillController::class, 'pay'])

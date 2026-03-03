@@ -110,6 +110,24 @@ class MidtransWebhookController extends Controller
                 // set paid_amount to invoice amount or accumulate
                 $bill->paid_amount = $bill->paid_amount + ($payment->amount ?? 0);
                 $bill->save();
+                
+                // Auto-generate next recurring bill if this is a recurring bill
+                if ($bill->is_recurring && $bill->next_billing_date && $bill->next_billing_date <= now()->toDateString()) {
+                    try {
+                        $nextBill = $bill->generateNextBill();
+                        if ($nextBill) {
+                            Log::info('Auto-generated next recurring bill after payment', [
+                                'parent_bill_id' => $bill->id,
+                                'new_bill_id' => $nextBill->id,
+                                'new_bill_number' => $nextBill->bill_number,
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        Log::warning('Failed to auto-generate next recurring bill: ' . $e->getMessage(), [
+                            'bill_id' => $bill->id,
+                        ]);
+                    }
+                }
             }
         } catch (\Throwable $e) {
             Log::warning('Failed to update bill from Midtrans notification: ' . $e->getMessage());

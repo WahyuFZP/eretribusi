@@ -60,26 +60,29 @@
                             </select>
                         </div>
 
-                        <!-- Bulk Export Button -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Export ZIP</span>
-                            </label>
-                            <button type="submit" class="btn btn-primary" formaction="{{ route('admin.bills.bulk-export') }}">
-                                <i class="fas fa-download"></i>
-                                ZIP Files
-                            </button>
-                        </div>
+                        <!-- Export Buttons (aligned) -->
+                        <div class="md:col-span-2">
+                            <div class="flex items-end gap-4 h-full">
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Export ZIP</span>
+                                    </label>
+                                    <button type="submit" class="btn btn-primary w-32" formaction="{{ route('admin.bills.bulk-export') }}">
+                                        <i class="fas fa-download"></i>
+                                        ZIP Files
+                                    </button>
+                                </div>
 
-                        <!-- Summary Report Button -->
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Laporan Summary</span>
-                            </label>
-                            <button type="submit" class="btn btn-secondary" formaction="{{ route('admin.bills.summary-report') }}">
-                                <i class="fas fa-file-pdf"></i>
-                                Summary PDF
-                            </button>
+                                <div class="form-control">
+                                    <label class="label">
+                                        <span class="label-text">Laporan Summary</span>
+                                    </label>
+                                    <button type="submit" class="btn btn-secondary w-36" formaction="{{ route('admin.bills.summary-report') }}">
+                                        <i class="fas fa-file-pdf"></i>
+                                        Summary PDF
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

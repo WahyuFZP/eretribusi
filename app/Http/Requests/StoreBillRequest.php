@@ -33,6 +33,8 @@ class StoreBillRequest extends FormRequest
             'status' => ['nullable', 'in:unpaid,partial,paid'],
             'document' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'is_recurring' => ['nullable', 'boolean'],
+            'recurring_frequency' => ['nullable', 'required_if:is_recurring,true', 'in:monthly,yearly'],
         ];
     }
 }

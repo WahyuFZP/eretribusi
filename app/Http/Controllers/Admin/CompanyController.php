@@ -40,7 +40,7 @@ class CompanyController extends Controller
             'phone' => 'nullable|string|max:50',
             'address' => 'nullable|string|max:1000',
             'user_id' => 'nullable|exists:users,id',
-            // do not require code here; Company model may auto-generate it
+            
         ]);
 
         $company = Company::create(array_merge($data, ['user_id' => $data['user_id'] ?? null]));

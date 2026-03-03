@@ -25,8 +25,8 @@
                     </svg>
                 </div>
                 <div class="stat-title">Total Wajib Retribusi</div>
-                <div class="stat-value text-primary">1,234</div>
-                <div class="stat-desc">↗︎ 5% (30 days)</div>
+                <div class="stat-value text-primary">{{ isset($stats) ? number_format($stats['total_companies']) : '—' }}</div>
+                <div class="stat-desc">Data realtime</div>
             </div>
         </div>
 
@@ -39,8 +39,8 @@
                     </svg>
                 </div>
                 <div class="stat-title">Pembayaran Hari Ini</div>
-                <div class="stat-value text-success">Rp 5.2M</div>
-                <div class="stat-desc">↗︎ 12% dari kemarin</div>
+                <div class="stat-value text-success">Rp {{ isset($stats) ? number_format($stats['payments_today'], 0, ',', '.') : '0' }}</div>
+                <div class="stat-desc">Status paid/settlement</div>
             </div>
         </div>
 
@@ -53,8 +53,8 @@
                     </svg>
                 </div>
                 <div class="stat-title">Tagihan Pending</div>
-                <div class="stat-value text-warning">89</div>
-                <div class="stat-desc">Perlu ditindaklanjuti</div>
+                <div class="stat-value text-warning">{{ isset($stats) ? number_format($stats['pending_bills']) : '—' }}</div>
+                <div class="stat-desc">Unpaid/partial</div>
             </div>
         </div>
 
@@ -67,11 +67,56 @@
                     </svg>
                 </div>
                 <div class="stat-title">Total Tunggakan</div>
-                <div class="stat-value text-error">Rp 2.1M</div>
-                <div class="stat-desc">↘︎ 3% dari bulan lalu</div>
+                <div class="stat-value text-error">Rp {{ isset($stats) ? number_format($stats['overdue_amount'], 0, ',', '.') : '0' }}</div>
+                <div class="stat-desc">Lewat jatuh tempo</div>
             </div>
         </div>
     </div>
+
+    <!-- Recurring Bills Alert -->
+    @if(isset($stats['recurring_bills_due']) && $stats['recurring_bills_due'] > 0)
+    <div class="alert alert-info mb-6">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div>
+            <h3 class="font-bold">Tagihan Otomatis Menunggu</h3>
+            <div class="text-xs">
+                Ada {{ $stats['recurring_bills_due'] }} tagihan otomatis yang siap di-generate. 
+                <a href="{{ route('admin.tagihan.recurring') }}" class="link link-hover font-medium">Kelola sekarang</a>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="generateRecurringBills()" class="btn btn-sm btn-primary">
+                Generate Sekarang
+            </button>
+            <a href="{{ route('admin.tagihan.recurring') }}" class="btn btn-sm btn-outline">
+                Kelola
+            </a>
+        </div>
+    </div>
+    @endif
+
+    <!-- Recurring Bills Summary Card (when there are recurring bills) -->
+    @if(isset($stats['total_recurring_bills']) && $stats['total_recurring_bills'] > 0)
+    <div class="alert alert-success mb-6">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="flex-grow">
+            <div class="font-bold">Sistem Tagihan Otomatis Aktif</div>
+            <div class="text-sm">
+                {{ $stats['total_recurring_bills'] }} tagihan diatur untuk generate otomatis.
+                @if($stats['recurring_bills_due'] == 0)
+                    Semua tagihan terjadwal sudah ter-generate.
+                @endif
+            </div>
+        </div>
+        <a href="{{ route('admin.tagihan.recurring') }}" class="btn btn-sm btn-outline">
+            Kelola
+        </a>
+    </div>
+    @endif
 
     <!-- Main Content -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -180,4 +225,69 @@
             </div>
         </div>
     </div>
+
+<script>
+async function generateRecurringBills() {
+    const button = document.querySelector('[onclick="generateRecurringBills()"]');
+    const originalText = button.textContent;
+    
+    // Disable button and show loading
+    button.disabled = true;
+    button.innerHTML = '<span class="loading loading-spinner loading-sm"></span> Generating...';
+    
+    try {
+        const response = await fetch('/admin/api/generate-recurring-bills', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            showAlert('success', `Berhasil generate ${result.generated} tagihan baru!`);
+            
+            // Reload page after 2 seconds to update stats
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showAlert('error', result.message || 'Gagal generate tagihan');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('error', 'Terjadi kesalahan sistem');
+    } finally {
+        // Restore button
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+function showAlert(type, message) {
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+    const icon = type === 'success' 
+        ? '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
+        : '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+    
+    const alert = document.createElement('div');
+    alert.className = `alert ${alertClass} mb-4`;
+    alert.innerHTML = `
+        ${icon}
+        <span>${message}</span>
+    `;
+    
+    // Insert at top of content
+    const content = document.querySelector('.container');
+    content.insertBefore(alert, content.firstChild);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        alert.remove();
+    }, 5000);
+}
+</script>
 @endsection
